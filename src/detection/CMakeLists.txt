@@ -4,6 +4,7 @@ set (DETECTION_INCLUDES
     detection_defines.h
     detection_options.h
     detection_util.h
+    ips_context.h
     pattern_match_data.h
     rule_option_types.h
     rules.h
@@ -13,6 +14,8 @@ set (DETECTION_INCLUDES
 
 add_library (detection STATIC
     ${DETECTION_INCLUDES}
+    context_switcher.cc
+    context_switcher.h
     detect.cc
     detection_options.cc
     detection_util.cc
@@ -24,6 +27,7 @@ add_library (detection STATIC
     fp_detect.h
     fp_utils.cc
     fp_utils.h
+    ips_context.cc
     pcrm.cc
     pcrm.h
     service_map.cc
