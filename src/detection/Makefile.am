@@ -8,6 +8,7 @@ detect.h \
 detection_defines.h \
 detection_options.h \
 detection_util.h \
+ips_context.h \
 pattern_match_data.h \
 rule_option_types.h \
 rules.h \
@@ -15,6 +16,8 @@ signature.h \
 treenodes.h
 
 libdetection_a_SOURCES = \
+context_switcher.cc \
+context_switcher.h \
 detect.cc \
 detection_options.cc \
 detection_util.cc \
@@ -26,6 +29,7 @@ fp_detect.cc \
 fp_detect.h \
 fp_utils.cc \
 fp_utils.h \
+ips_context.cc \
 pcrm.cc \
 pcrm.h \
 service_map.cc \
