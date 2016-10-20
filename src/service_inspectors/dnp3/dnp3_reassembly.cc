@@ -21,8 +21,11 @@
 // modifications for snort3 by Rashmi Pitre <rrp@cisco.com>
 
 #include "dnp3_reassembly.h"
-#include "events/event_queue.h"
+
 #include "detection/detect.h"
+#include "events/event_queue.h"
+#include "main/snort.h"
+
 #include "dnp3_map.h"
 #include "dnp3.h"
 #include "dnp3_module.h"

@@ -778,7 +778,6 @@ void DCE2_Smb2Process(DCE2_SmbSsnData* ssd)
     Packet* p = ssd->sd.wire_pkt;
     const uint8_t* data_ptr = p->data;
     uint16_t data_len = p->dsize;
-    Smb2Hdr* smb_hdr;
     const uint8_t* end = data_ptr +  data_len;
 
     /*Check header length*/
@@ -794,7 +793,7 @@ void DCE2_Smb2Process(DCE2_SmbSsnData* ssd)
     if (p->is_pdu_start())
     {
         uint32_t next_command_offset;
-        smb_hdr = (Smb2Hdr*)(data_ptr + sizeof(NbssHdr));
+        Smb2Hdr* smb_hdr = (Smb2Hdr*)(data_ptr + sizeof(NbssHdr));
         next_command_offset = alignedNtohl(&(smb_hdr->next_command));
         if (next_command_offset + sizeof(NbssHdr) > p->dsize)
         {
