@@ -48,6 +48,7 @@
 #include "filters/rate_filter.h"
 #include "filters/sfthreshold.h"
 #include "flow/ha.h"
+#include "framework/endianness.h"
 #include "framework/mpse.h"
 #include "helpers/process.h"
 #include "host_tracker/host_cache.h"
@@ -728,10 +729,9 @@ SF_EVENTQ* Snort::get_event_queue()
 
 Packet* Snort::set_detect_packet()
 {
-    // this approach is a hack until verified
-    // looks like we need to stay in the current context until 
-    // rebuild is successful; any events while rebuilding will
-    // be logged against the current packet.
+    // we need to stay in the current context until rebuild is successful
+    // any events while rebuilding will be logged against the current packet
+    // FIXIT-H bypass the interrupt / complete
     const IpsContext* c = s_switcher->interrupt();
     Packet* p = c->packet;
     s_switcher->complete();

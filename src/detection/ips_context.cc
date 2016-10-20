@@ -69,7 +69,7 @@ IpsContext::~IpsContext()
 
     sfeventq_free(equeue);
 
-    delete buf;
+    delete[] buf;
     delete pkth;
     delete packet;
 }
@@ -94,7 +94,7 @@ IpsContextData* IpsContext::get_context_data(unsigned id) const
 class ContextData : public IpsContextData
 {
 public:
-    ContextData(int i)
+    ContextData(int)
     { ++count; }
 
     ~ContextData()
