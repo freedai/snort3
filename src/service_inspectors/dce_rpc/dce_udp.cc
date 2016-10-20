@@ -26,8 +26,6 @@
 
 #include "dce_udp_module.h"
 
-THREAD_LOCAL int dce2_udp_inspector_instances = 0;
-
 THREAD_LOCAL dce2UdpStats dce2_udp_stats;
 
 THREAD_LOCAL ProfileStats dce2_udp_pstat_main;
@@ -38,8 +36,6 @@ THREAD_LOCAL ProfileStats dce2_udp_pstat_log;
 THREAD_LOCAL ProfileStats dce2_udp_pstat_cl_acts;
 THREAD_LOCAL ProfileStats dce2_udp_pstat_cl_frag;
 THREAD_LOCAL ProfileStats dce2_udp_pstat_cl_reass;
-
-THREAD_LOCAL Packet* dce2_udp_rpkt = nullptr;
 
 static void DCE2_ClCleanTracker(DCE2_ClTracker* clt)
 {
@@ -209,15 +205,10 @@ void Dce2Udp::eval(Packet* p)
 
     if (dce2_udp_sess)
     {
-        if (DCE2_PushPkt(p,&dce2_udp_sess->sd) != DCE2_RET__SUCCESS)
-        {
-            DebugMessage(DEBUG_DCE_UDP, "Failed to push packet onto packet stack.\n");
-            return;
-        }
         p->packet_flags |= PKT_ALLOW_MULTIPLE_DETECT;
         dce2_detected = 0;
 
-        p->endianness = (Endianness*)new DceEndianness();
+        p->endianness = new DceEndianness();
 
         dce2_udp_stats.udp_pkts++;
         DCE2_ClProcess(&dce2_udp_sess->sd, &dce2_udp_sess->cl_tracker);
@@ -226,7 +217,6 @@ void Dce2Udp::eval(Packet* p)
             DCE2_Detect(&dce2_udp_sess->sd);
 
         DCE2_ResetRopts(&dce2_udp_sess->sd.ropts);
-        DCE2_PopPkt(&dce2_udp_sess->sd);
 
         if (!DCE2_SsnAutodetected(&dce2_udp_sess->sd))
             DisableInspection();
@@ -268,51 +258,6 @@ static void dce2_udp_init()
     Dce2UdpFlowData::init();
 }
 
-static void dce2_udp_thread_init()
-{
-    if (dce2_inspector_instances == 0)
-    {
-        dce2_pkt_stack = DCE2_CStackNew(DCE2_PKT_STACK__SIZE, nullptr);
-    }
-
-    if (dce2_udp_inspector_instances == 0)
-    {
-        dce2_udp_rpkt = (Packet*)snort_calloc(sizeof(Packet));
-        dce2_udp_rpkt->data = (uint8_t*)snort_calloc(DCE2_REASSEMBLY_BUF_SIZE);
-        dce2_udp_rpkt->endianness = (Endianness*)new DceEndianness();
-        dce2_udp_rpkt->dsize = DCE2_REASSEMBLY_BUF_SIZE;
-    }
-
-    dce2_udp_inspector_instances++;
-    dce2_inspector_instances++;
-}
-
-static void dce2_udp_thread_term()
-{
-    dce2_inspector_instances--;
-    dce2_udp_inspector_instances--;
-
-    if (dce2_udp_inspector_instances == 0)
-    {
-        if ( dce2_udp_rpkt != nullptr )
-        {
-            if (dce2_udp_rpkt->data)
-            {
-                snort_free((void*)dce2_udp_rpkt->data);
-            }
-            delete dce2_udp_rpkt->endianness;
-            snort_free(dce2_udp_rpkt);
-            dce2_udp_rpkt = nullptr;
-        }
-    }
-
-    if (dce2_inspector_instances == 0)
-    {
-        DCE2_CStackDestroy(dce2_pkt_stack);
-        dce2_pkt_stack = nullptr;
-    }
-}
-
 const InspectApi dce2_udp_api =
 {
     {
@@ -333,8 +278,8 @@ const InspectApi dce2_udp_api =
     "dce_udp",
     dce2_udp_init,
     nullptr, // pterm
-    dce2_udp_thread_init, // tinit
-    dce2_udp_thread_term, // tterm
+    nullptr, // tinit
+    nullptr, // tterm
     dce2_udp_ctor,
     dce2_udp_dtor,
     nullptr, // ssn

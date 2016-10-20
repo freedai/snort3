@@ -632,10 +632,7 @@ int TcpReassembler::_flush_to_seq(uint32_t bytes, Packet* p, uint32_t pkt_flags)
         footprint = stop_seq - seglist_base_seq;
 
         if (footprint == 0)
-        {
-            Snort::clear_detect_packet();
             return bytes_processed;
-        }
 
         if (footprint > s5_pkt->max_dsize )
         {
@@ -701,7 +698,6 @@ int TcpReassembler::_flush_to_seq(uint32_t bytes, Packet* p, uint32_t pkt_flags)
     }
     while ( seglist.next and flush_data_ready( ) );
 
-    Snort::clear_detect_packet();
     return bytes_processed;
 }
 
