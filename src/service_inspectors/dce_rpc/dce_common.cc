@@ -31,6 +31,7 @@
 #include "dce_udp.h"
 
 THREAD_LOCAL int dce2_detected = 0;
+static THREAD_LOCAL bool using_rpkt = false;
 
 static const char* dce2_get_policy_name(DCE2_Policy policy)
 {
@@ -196,11 +197,14 @@ static void dce2_protocol_detect(DCE2_SsnData* sd, Packet* pkt)
 
 void DCE2_Detect(DCE2_SsnData* sd)
 {
-    DetectionContext dc;
-    Packet* top_pkt = dc.get_packet();
-
-    if ( !top_pkt->endianness )
+    if ( using_rpkt )
+    {
+        using_rpkt = false;
+        DetectionContext dc;
+        DCE2_Detect(sd);
         return;
+    }
+    Packet* top_pkt = Snort::get_detect_packet();
 
     DCE2_PrintRoptions(&sd->ropts);
     DebugMessage(DEBUG_DCE_COMMON, "Payload:\n");
@@ -344,10 +348,7 @@ uint16_t DCE2_GetRpktMaxData(DCE2_SsnData* sd, DCE2_RpktType rtype)
 
 static void dce2_fill_rpkt_info(Packet* rpkt, Packet* p)
 {
-    DceEndianness* endianness = (DceEndianness*)rpkt->endianness;
-    rpkt->reset();
-    rpkt->endianness = (Endianness*)endianness;
-    ((DceEndianness*)rpkt->endianness)->reset();
+    rpkt->endianness = new DceEndianness();
     rpkt->pkth = p->pkth;
     rpkt->ptrs = p->ptrs;
     rpkt->flow = p->flow;
@@ -361,18 +362,16 @@ Packet* DCE2_GetRpkt(Packet* p,DCE2_RpktType rpkt_type,
     const uint8_t* data, uint32_t data_len)
 {
     Packet* rpkt = Snort::set_detect_packet();
-    rpkt->endianness = new DceEndianness();
+    dce2_fill_rpkt_info(rpkt, p);
     uint16_t data_overhead = 0;
 
     switch (rpkt_type)
     {
     case DCE2_RPKT_TYPE__SMB_SEG:
-        dce2_fill_rpkt_info(rpkt, p);
         rpkt->pseudo_type = PSEUDO_PKT_SMB_SEG;
         break;
 
     case DCE2_RPKT_TYPE__SMB_TRANS:
-        dce2_fill_rpkt_info(rpkt, p);
         rpkt->pseudo_type = PSEUDO_PKT_SMB_TRANS;
         if (DCE2_SsnFromClient(p))
         {
@@ -389,7 +388,6 @@ Packet* DCE2_GetRpkt(Packet* p,DCE2_RpktType rpkt_type,
         break;
 
     case DCE2_RPKT_TYPE__SMB_CO_SEG:
-        dce2_fill_rpkt_info(rpkt, p);
         rpkt->pseudo_type = PSEUDO_PKT_DCE_SEG;
         if (DCE2_SsnFromClient(p))
         {
@@ -406,7 +404,6 @@ Packet* DCE2_GetRpkt(Packet* p,DCE2_RpktType rpkt_type,
         break;
 
     case DCE2_RPKT_TYPE__SMB_CO_FRAG:
-        dce2_fill_rpkt_info(rpkt, p);
         rpkt->pseudo_type = PSEUDO_PKT_DCE_FRAG;
         if (DCE2_SsnFromClient(p))
         {
@@ -427,7 +424,6 @@ Packet* DCE2_GetRpkt(Packet* p,DCE2_RpktType rpkt_type,
         break;
 
     case DCE2_RPKT_TYPE__UDP_CL_FRAG:
-        dce2_fill_rpkt_info(rpkt, p);
         rpkt->pseudo_type = PSEUDO_PKT_DCE_FRAG;
         data_overhead = DCE2_MOCK_HDR_LEN__CL;
         memset((void*)rpkt->data, 0, data_overhead);
@@ -436,8 +432,6 @@ Packet* DCE2_GetRpkt(Packet* p,DCE2_RpktType rpkt_type,
 
     case DCE2_RPKT_TYPE__TCP_CO_SEG:
     case DCE2_RPKT_TYPE__TCP_CO_FRAG:
-        dce2_fill_rpkt_info(rpkt, p);
-
         if (rpkt_type == DCE2_RPKT_TYPE__TCP_CO_FRAG)
         {
             rpkt->pseudo_type = PSEUDO_PKT_DCE_FRAG;
@@ -462,6 +456,7 @@ Packet* DCE2_GetRpkt(Packet* p,DCE2_RpktType rpkt_type,
 
     default:
         DebugFormat(DEBUG_DCE_COMMON, "Invalid reassembly packet type: %d\n",rpkt_type);
+        assert(false);
         return nullptr;
     }
 
@@ -469,12 +464,18 @@ Packet* DCE2_GetRpkt(Packet* p,DCE2_RpktType rpkt_type,
         data_len -= (data_overhead + data_len) - Packet::max_dsize;
 
     if (data_len > Packet::max_dsize - data_overhead)
+    {
+        DebugMessage(DEBUG_DCE_COMMON, "Failed to create reassembly packet.\n");
+        delete rpkt->endianness;
+        rpkt->endianness = nullptr;
         return nullptr;
+    }
 
     memcpy_s((void*)(rpkt->data + data_overhead),
         Packet::max_dsize - data_overhead, data, data_len);
 
     rpkt->dsize = data_len + data_overhead;
+    using_rpkt = true;
     return rpkt;
 }
 
