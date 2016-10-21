@@ -21,6 +21,7 @@
 
 #include "dce_smb_utils.h"
 
+#include "detection/detection_engine.h"
 #include "detection/detection_util.h"
 #include "file_api/file_flows.h"
 #include "main/snort.h"
@@ -1912,15 +1913,15 @@ void DCE2_SmbProcessFileData(DCE2_SmbSsnData* ssd,
 
 void DCE2_FileDetect()
 {
-    Packet* top_pkt = Snort::set_detect_packet();
-    DetectionContext dc;
+    Packet* top_pkt = DetectionEngine::set_packet();
+    DetectionEngine de;
 
     DebugMessage(DEBUG_DCE_SMB, "Payload:\n");
     DCE2_PrintPktData(top_pkt->data, top_pkt->dsize);
 
     Profile profile(dce2_smb_pstat_smb_file_detect);
 
-    snort_detect(top_pkt);
+    DetectionEngine::process(top_pkt);
 
     // Reset file data pointer after detecting
     set_file_data(nullptr, 0);

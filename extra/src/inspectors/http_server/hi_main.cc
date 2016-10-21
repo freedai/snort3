@@ -58,7 +58,7 @@
 #include <sys/types.h>
 #include <limits.h>
 
-#include "detection/detect.h"
+#include "detection/detection_engine.h"
 #include "detection/detection_util.h"
 #include "events/event.h"
 #include "file_api/file_api.h"
@@ -625,7 +625,6 @@ int HttpInspectMain(HTTPINSPECT_CONF* conf, Packet* p)
             DisableDetect();
             return 0;
         }
-        // see comments on call to snort_detect() below
         {
             ProfileExclude exclude(hiPerfStats);
             get_data_bus().publish(PACKET_EVENT, p);
@@ -1121,7 +1120,7 @@ int HttpInspectMain(HTTPINSPECT_CONF* conf, Packet* p)
         */
         {
             Profile exclude(hiPerfStats);
-            snort_detect(p);
+            DetectionEngine::process(p);
         }
 
         /*
@@ -1134,7 +1133,7 @@ int HttpInspectMain(HTTPINSPECT_CONF* conf, Packet* p)
 
     if ( iCallDetect == 0 )
     {
-        /* snort_detect called at least once from above pkt processing loop. */
+        // DetectionEngine::process called at least once from above pkt processing loop.
         // FIXIT-M this throws off nfp rules like this:
         // alert tcp any any -> any any ( sid:1; msg:"1"; flags:S; )
         // (check shutdown counts)

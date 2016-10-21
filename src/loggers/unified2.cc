@@ -49,7 +49,6 @@
 #include "detection/rules.h"
 #include "detection/treenodes.h"
 #include "detection/detection_util.h"
-#include "detection/detect.h"
 #include "parser/parser.h"
 #include "events/event.h"
 #include "log/messages.h"

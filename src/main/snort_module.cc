@@ -34,7 +34,6 @@
 #include "help.h"
 #include "shell.h"
 #include "thread_config.h"
-#include "detection/detect.h"
 #include "framework/base_api.h"
 #include "framework/module.h"
 #include "framework/parameter.h"

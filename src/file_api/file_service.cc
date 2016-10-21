@@ -46,7 +46,6 @@
 #include "mime/file_mime_process.h"
 #include "main/snort_types.h"
 #include "managers/action_manager.h"
-#include "detection/detect.h"
 #include "detection/detection_util.h"
 #include "packet_io/active.h"
 #include "framework/inspector.h"

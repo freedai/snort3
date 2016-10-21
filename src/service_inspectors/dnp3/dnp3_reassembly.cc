@@ -22,9 +22,8 @@
 
 #include "dnp3_reassembly.h"
 
-#include "detection/detect.h"
+#include "detection/detection_engine.h"
 #include "events/event_queue.h"
-#include "main/snort.h"
 
 #include "dnp3_map.h"
 #include "dnp3.h"
@@ -409,7 +408,7 @@ bool dnp3_full_reassembly(dnp3ProtoConf& config, dnp3_session_data_t* session, P
         {
             {
                 ProfileExclude profile_exclude(dnp3_perf_stats);
-                snort_detect(packet);
+                DetectionEngine::process(packet);
             }
 
             /* Since detection was done, reset reassembly state to avoid double alerts

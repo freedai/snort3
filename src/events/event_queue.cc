@@ -55,6 +55,7 @@
 
 #include "sfeventq.h"
 #include "event_wrapper.h"
+#include "detection/detection_engine.h"
 #include "detection/fp_detect.h"
 #include "utils/util.h"
 #include "utils/stats.h"
@@ -104,7 +105,7 @@ int SnortEventqAdd(const OptTreeNode* otn)
         return 0;
     }
 
-    SF_EVENTQ* pq = Snort::get_event_queue();
+    SF_EVENTQ* pq = DetectionEngine::get_event_queue();
     EventNode* en = (EventNode*)sfeventq_event_alloc(pq);
 
     if ( !en )
@@ -129,7 +130,7 @@ int SnortEventqAdd(uint32_t gid, uint32_t sid, RuleType type)
     if ( !otn )
         return 0;
 
-    SF_EVENTQ* pq = Snort::get_event_queue();
+    SF_EVENTQ* pq = DetectionEngine::get_event_queue();
     EventNode* en = (EventNode*)sfeventq_event_alloc(pq);
 
     if ( !en )
@@ -185,7 +186,7 @@ static int LogSnortEvents(void* event, void* user)
 */
 int SnortEventqLog(Packet* p)
 {
-    SF_EVENTQ* pq = Snort::get_event_queue();
+    SF_EVENTQ* pq = DetectionEngine::get_event_queue();
     sfeventq_action(pq, LogSnortEvents, (void*)p);
     return 0;
 }
@@ -203,7 +204,7 @@ void SnortEventqResetCounts()
 
 void SnortEventqReset()
 {
-    SF_EVENTQ* pq = Snort::get_event_queue();
+    SF_EVENTQ* pq = DetectionEngine::get_event_queue();
     sfeventq_reset(pq);
     reset_counts();
 }

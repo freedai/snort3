@@ -23,7 +23,6 @@
 #define TCP_REASSEMBLER_H
 
 #include "framework/counts.h"
-#include "detection/detect.h"
 #include "normalize/normalize.h"
 
 #include "segment_overlap_editor.h"

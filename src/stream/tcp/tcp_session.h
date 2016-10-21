@@ -24,8 +24,6 @@
 #include "config.h"
 #endif
 
-#include "detection/detect.h"
-
 #include "stream/libtcp/tcp_stream_session.h"
 #include "stream/libtcp/tcp_state_machine.h"
 #include "stream_tcp.h"
