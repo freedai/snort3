@@ -39,16 +39,9 @@
 
 #include "event_wrapper.h"
 
-#include "detection/rules.h"
 #include "detection/treenodes.h"
-#include "detection/signature.h"
 #include "detection/fp_detect.h"
-#include "main/snort_types.h"
-#include "main/snort_debug.h"
 #include "parser/parser.h"
-#include "events/event.h"
-#include "detection/detect.h"
-#include "utils/util.h"
 
 /*
  * This function has been updated to find an otn and route the call to fpLogEvent
@@ -59,17 +52,14 @@
  */
 uint32_t GenerateSnortEvent(Packet* p, uint32_t gid, uint32_t sid)
 {
-    OptTreeNode* otn;
-    RuleTreeNode* rtn;
+    OptTreeNode* otn = GetOTN(gid, sid);
 
-    otn = GetOTN(gid, sid);
-
-    if (otn == NULL)
+    if ( !otn )
         return 0;
 
-    rtn = getRuntimeRtnFromOtn(otn);
+    RuleTreeNode* rtn = getRuntimeRtnFromOtn(otn);
 
-    if (rtn == NULL)
+    if ( !rtn )
         return 0;
 
     fpLogEvent(rtn, otn, p);

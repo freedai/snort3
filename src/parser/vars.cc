@@ -27,15 +27,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <errno.h>
-#include <ctype.h>
 #include <unistd.h>
-#include <stdarg.h>
-#include <pcap.h>
-#include <grp.h>
-#include <pwd.h>
-#include <fnmatch.h>
 
 #include "config_file.h"
 #include "parser/parser.h"
@@ -45,27 +37,9 @@
 #include "log/messages.h"
 #include "main/snort_debug.h"
 #include "main/snort_config.h"
-#include "detection/rules.h"
-#include "detection/treenodes.h"
-#include "detection/detect.h"
-#include "detection/tag.h"
-#include "detection/signature.h"
-#include "detection/sfrim.h"
-#include "utils/util.h"
-#include "utils/sflsq.h"
-#include "ports/port_object.h"
-#include "protocols/packet.h"
-#include "filters/sfthreshold.h"
-#include "filters/sfthd.h"
-#include "filters/rate_filter.h"
-#include "filters/detection_filter.h"
-#include "hash/sfghash.h"
 #include "sfip/sf_vartable.h"
 #include "sfip/sf_ip.h"
 #include "sfip/sf_ipvar.h"
-#include "packet_io/active.h"
-#include "file_api/file_config.h"
-#include "framework/ips_option.h"
 
 #ifdef UNIT_TEST
 #include "catch/catch.hpp"

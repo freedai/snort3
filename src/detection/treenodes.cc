@@ -22,10 +22,7 @@
 
 #include "framework/ips_option.h"
 #include "main/snort_types.h"
-#include "main/snort_debug.h"
 #include "utils/util.h"
-
-#include "detect.h"
 
 OptFpList* AddOptFuncToList(RuleOptEvalFunc ro_eval_func, OptTreeNode* otn)
 {

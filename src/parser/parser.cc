@@ -60,7 +60,6 @@
 #include "detection/signature.h"
 #include "detection/treenodes.h"
 #include "detection/rules.h"
-#include "detection/detect.h"
 #include "detection/fp_config.h"
 #include "detection/tag.h"
 #include "detection/sfrim.h"

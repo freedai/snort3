@@ -52,7 +52,6 @@
 #include "main/snort_types.h"
 #include "main/snort_debug.h"
 #include "main/snort_config.h"
-#include "detection/detect.h"
 #include "detection/detection_util.h"
 #include "hash/sfxhash.h"
 #include "utils/util.h"
