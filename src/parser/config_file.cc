@@ -42,6 +42,7 @@
 #include "mstring.h"
 
 #include "detection/detect.h"
+#include "detection/detection_engine.h"
 #include "log/messages.h"
 #include "main/snort.h"
 #include "main/snort_config.h"
@@ -563,7 +564,7 @@ void config_alert_mode(SnortConfig* sc, const char* val)
         sc->output = val;
 
     sc->output_flags |= OUTPUT_FLAG__ALERTS;
-    Snort::set_main_hook(snort_inspect);
+    Snort::set_main_hook(DetectionEngine::inspect);
 }
 
 void config_log_mode(SnortConfig* sc, const char* val)
@@ -586,7 +587,7 @@ void config_conf(SnortConfig*, const char* val)
 {
     lua_conf = val;
     SetSnortConfDir(lua_conf.c_str());
-    Snort::set_main_hook(snort_inspect);
+    Snort::set_main_hook(DetectionEngine::inspect);
 }
 
 void SetSnortConfDir(const char* file)

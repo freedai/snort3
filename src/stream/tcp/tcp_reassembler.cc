@@ -28,6 +28,7 @@
 
 #include "detection/detection_engine.h"
 #include "flow/flow_control.h"
+#include "log/log.h"
 #include "main/snort.h"
 #include "profiler/profiler.h"
 #include "protocols/packet.h"

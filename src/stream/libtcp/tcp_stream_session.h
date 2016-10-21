@@ -26,7 +26,7 @@
 #include "config.h"
 #endif
 
-#include "detection/detect.h"
+#include "detection/detection_engine.h"
 #include "flow/session.h"
 #include "stream/tcp/tcp_stream_config.h"
 #include "stream/tcp/tcp_event_logger.h"
@@ -80,7 +80,7 @@ public:
     virtual void retransmit_process()
     {
         // Data has already been analyzed so don't bother looking at it again.
-        DisableDetect();
+        DetectionEngine::disable_content();
     }
 
     virtual void retransmit_handle(Packet* p)

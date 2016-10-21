@@ -20,7 +20,7 @@
 
 #include "dce_smb.h"
 
-#include "detection/detect.h"
+#include "detection/detection_engine.h"
 #include "file_api/file_service.h"
 #include "protocols/packet.h"
 #include "utils/util.h"
@@ -3085,7 +3085,7 @@ void Dce2Smb::eval(Packet* p)
         DCE2_ResetRopts(&dce2_smb_sess->sd.ropts);
 
         if (!DCE2_SsnAutodetected(&dce2_smb_sess->sd))
-            DisableInspection();
+            DetectionEngine::disable_all();
 
         delete p->endianness;
         p->endianness = nullptr;

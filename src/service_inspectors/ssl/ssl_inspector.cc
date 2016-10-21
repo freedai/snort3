@@ -42,7 +42,7 @@
 #include "framework/inspector.h"
 #include "utils/sfsnprintfappend.h"
 #include "target_based/snort_protocols.h"
-#include "detection/detect.h"
+#include "detection/detection_engine.h"
 #include "protocols/ssl.h"
 #include "stream/stream.h"
 
@@ -190,7 +190,7 @@ static inline uint32_t SSLPP_process_alert(
         !(new_flags & SSL_HEARTBEAT_SEEN))
     {
         DebugMessage(DEBUG_SSL, "Disabling detect\n");
-        DisableDetect();
+        DetectionEngine::disable_content();
     }
 
     /* Need to negate the application flags from the opposing side. */
@@ -241,7 +241,7 @@ static inline uint32_t SSLPP_process_app(SSL_PROTO_CONF* config, uint32_t ssn_fl
         }
         else if (!(new_flags & SSL_HEARTBEAT_SEEN))
         {
-            DisableDetect();
+            DetectionEngine::disable_content();
         }
     }
 
@@ -268,7 +268,7 @@ static inline void SSLPP_process_other(SSL_PROTO_CONF* config, SSLData* sd, uint
         }
         else if (!(new_flags & SSL_HEARTBEAT_SEEN))
         {
-            DisableDetect();
+            DetectionEngine::disable_content();
         }
     }
     else
@@ -349,7 +349,7 @@ static void snort_ssl(SSL_PROTO_CONF* config, Packet* p)
 
         if (!(new_flags & SSL_HEARTBEAT_SEEN))
         {
-            DisableDetect();
+            DetectionEngine::disable_content();
         }
 
         sd->ssn_flags |= new_flags;
