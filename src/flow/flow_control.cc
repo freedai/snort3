@@ -24,7 +24,7 @@
 
 #include <cassert>
 
-#include "detection/detect.h"
+#include "detection/detection_engine.h"
 #include "managers/inspector_manager.h"
 #include "memory/memory_cap.h"
 #include "packet_io/active.h"
@@ -450,7 +450,7 @@ unsigned FlowControl::process(Flow* flow, Packet* p)
         if ( news )
             Stream::stop_inspection(flow, p, SSN_DIR_BOTH, -1, 0);
         else
-            DisableInspection();
+            DetectionEngine::disable_all();
 
         p->ptrs.decode_flags |= DECODE_PKT_TRUST;
         break;
@@ -461,7 +461,7 @@ unsigned FlowControl::process(Flow* flow, Packet* p)
         else
             Active::block_again();
 
-        DisableInspection();
+        DetectionEngine::disable_all();
         break;
 
     case Flow::FlowState::RESET:
@@ -471,7 +471,7 @@ unsigned FlowControl::process(Flow* flow, Packet* p)
             Active::reset_again();
 
         Stream::blocked_flow(flow, p);
-        DisableInspection();
+        DetectionEngine::disable_all();
         break;
     }
 
@@ -767,7 +767,7 @@ bool FlowControl::expected_flow(Flow* flow, Packet* p)
             p->packet_flags & PKT_FROM_CLIENT ? "sender" : "responder");
 
         flow->ssn_state.ignore_direction = ignore;
-        DisableInspection();
+        DetectionEngine::disable_all();
     }
 
     return ignore;

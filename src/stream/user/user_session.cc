@@ -23,6 +23,7 @@
 #include "config.h"
 #endif
 
+#include "detection/rules.h"
 #include "main/snort.h"
 #include "perf_monitor/perf_monitor.h"
 #include "profiler/profiler.h"

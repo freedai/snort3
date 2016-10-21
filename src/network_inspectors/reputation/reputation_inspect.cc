@@ -45,7 +45,7 @@
 #include "framework/inspector.h"
 #include "utils/sfsnprintfappend.h"
 #include "target_based/snort_protocols.h"
-#include "detection/detect.h"
+#include "detection/detection_engine.h"
 #include "packet_io/active.h"
 
 THREAD_LOCAL ProfileStats reputationPerfStats;
@@ -313,7 +313,7 @@ static void snort_reputation(ReputationConfig* config, Packet* p)
         SnortEventqAdd(GID_REPUTATION, REPUTATION_EVENT_BLACKLIST);
         Active::drop_packet(p, true);
         // disable all preproc analysis and detection for this packet
-        DisableInspection();
+        DetectionEngine::disable_all();
         p->disable_inspect = true;
         if (p->flow)
         {
@@ -332,7 +332,7 @@ static void snort_reputation(ReputationConfig* config, Packet* p)
     {
         SnortEventqAdd(GID_REPUTATION, REPUTATION_EVENT_WHITELIST);
         p->packet_flags |= PKT_IGNORE;
-        DisableInspection();
+        DetectionEngine::disable_all();
         p->disable_inspect = true;
         if (p->flow)
         {

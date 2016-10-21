@@ -21,7 +21,7 @@
 
 #include "dce_udp.h"
 
-#include "detection/detect.h"
+#include "detection/detection_engine.h"
 #include "utils/util.h"
 
 #include "dce_udp_module.h"
@@ -219,7 +219,7 @@ void Dce2Udp::eval(Packet* p)
         DCE2_ResetRopts(&dce2_udp_sess->sd.ropts);
 
         if (!DCE2_SsnAutodetected(&dce2_udp_sess->sd))
-            DisableInspection();
+            DetectionEngine::disable_all();
 
         delete p->endianness;
         p->endianness = nullptr;

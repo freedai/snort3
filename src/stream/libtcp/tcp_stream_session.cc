@@ -19,6 +19,7 @@
 // tcp_stream_session.cc author davis mcpherson <davmcphe@cisco.com>
 // Created on: Feb 18, 2016
 
+#include "detection/rules.h"
 #include "log/messages.h"
 #include "main/snort_debug.h"
 #include "sfip/sf_ip.h"

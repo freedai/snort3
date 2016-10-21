@@ -408,7 +408,7 @@ bool dnp3_full_reassembly(dnp3ProtoConf& config, dnp3_session_data_t* session, P
         {
             {
                 ProfileExclude profile_exclude(dnp3_perf_stats);
-                DetectionEngine::process(packet);
+                DetectionEngine::detect(packet);
             }
 
             /* Since detection was done, reset reassembly state to avoid double alerts

@@ -21,11 +21,6 @@
 #ifndef DETECT_H
 #define DETECT_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include "main/snort_debug.h"
 #include "main/snort_types.h"
 #include "protocols/packet.h"
 #include "detection/rules.h"
@@ -35,16 +30,12 @@
 
 struct ProfileStats;
 
-extern SO_PUBLIC THREAD_LOCAL bool do_detect;
-extern SO_PUBLIC THREAD_LOCAL bool do_detect_content;
-
 extern THREAD_LOCAL ProfileStats eventqPerfStats;
 extern THREAD_LOCAL ProfileStats detectPerfStats;
 extern THREAD_LOCAL ProfileStats rebuiltPacketPerfStats;
 
 // main loop hooks
 void snort_ignore(Packet*);
-void snort_inspect(Packet*);
 void snort_log(Packet*);
 
 // parsing
@@ -65,19 +56,8 @@ void CallLogFuncs(Packet*, ListHead*, Event*, const char*);
 void CallLogFuncs(Packet*, const OptTreeNode*, ListHead*);
 void CallAlertFuncs(Packet*, const OptTreeNode*, ListHead*);
 
-// don't eval content rules
-// non-content rules are still evaluated
-inline void DisableDetect()
-{
-    do_detect_content = false;
-}
-
-// don't want to do any detection with rules
-// (no content and no non-content)
-inline void DisableInspection()
-{
-    do_detect = do_detect_content = false;
-}
+void enable_tags();
+void check_tags(Packet*);
 
 #endif
 

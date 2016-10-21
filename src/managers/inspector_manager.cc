@@ -30,7 +30,7 @@
 #include "flow/flow.h"
 #include "flow/session.h"
 #include "framework/inspector.h"
-#include "detection/detection_util.h"
+#include "detection/detection_engine.h"
 #include "log/messages.h"
 #include "packet_io/active.h"
 #include "target_based/snort_protocols.h"
@@ -773,7 +773,7 @@ bool InspectorManager::full_inspection(FrameworkPolicy* fp, Packet* p)
         return false;
 
     else if ( !p->dsize )
-        DisableDetect();
+        DetectionEngine::disable_content();
 
     else if ( flow->gadget && flow->gadget->likes(p) )
     {
