@@ -46,7 +46,6 @@
 #include "parser/parser.h"
 #include "log/messages.h"
 #include "main/snort_debug.h"
-#include "detection/detect.h"
 #include "log/log.h"
 #include "profiler/profiler.h"
 #include "utils/util.h"

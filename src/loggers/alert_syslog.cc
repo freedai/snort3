@@ -34,7 +34,6 @@
 #include "framework/logger.h"
 #include "framework/module.h"
 #include "protocols/packet.h"
-#include "detection/detect.h"
 #include "detection/rules.h"
 #include "detection/treenodes.h"
 #include "events/event.h"

@@ -26,7 +26,6 @@
 #include "stream/stream.h"
 #include "main/snort_types.h"
 #include "main/snort_debug.h"
-#include "detection/detect.h"
 #include "detection/rules.h"
 #include "detection/treenodes.h"
 #include "hash/sfxhash.h"

@@ -28,7 +28,6 @@
 
 #include "sip.h"
 
-#include "detection/detect.h"
 #include "detection/detection_defines.h"
 #include "framework/ips_option.h"
 #include "framework/module.h"

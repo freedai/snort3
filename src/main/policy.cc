@@ -23,14 +23,15 @@
 #include <string.h>
 #include <assert.h>
 
+#include "detection/detection_engine.h"
 #include "managers/inspector_manager.h"
 #include "parser/vars.h"
-#include "main/shell.h"
-#include "main/snort_config.h"
-#include "detection/detect.h"
 #include "ports/port_table.h"
 #include "ports/port_utils.h"
 #include "ports/port_var_table.h"
+
+#include "shell.h"
+#include "snort_config.h"
 
 //-------------------------------------------------------------------------
 // traffic policy
@@ -63,7 +64,7 @@ public:
     AltPktHandler() { }
 
     void handle(DataEvent& e, Flow*)
-    { snort_detect((Packet*)e.get_packet()); }  // FIXIT-L not const!
+    { DetectionEngine::process((Packet*)e.get_packet()); }  // FIXIT-L not const!
 };
 
 InspectionPolicy::InspectionPolicy()
