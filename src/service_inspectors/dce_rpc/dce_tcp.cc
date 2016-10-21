@@ -21,7 +21,7 @@
 
 #include "dce_tcp.h"
 
-#include "detection/detect.h"
+#include "detection/detection_engine.h"
 #include "utils/util.h"
 
 #include "dce_tcp_module.h"
@@ -205,7 +205,7 @@ void Dce2Tcp::eval(Packet* p)
         DCE2_ResetRopts(&dce2_tcp_sess->sd.ropts);
 
         if (!DCE2_SsnAutodetected(&dce2_tcp_sess->sd))
-            DisableInspection();
+            DetectionEngine::disable_all();
 
         delete p->endianness;
         p->endianness = nullptr;

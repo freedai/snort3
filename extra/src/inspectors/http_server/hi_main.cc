@@ -622,7 +622,7 @@ int HttpInspectMain(HTTPINSPECT_CONF* conf, Packet* p)
 
         if ( p->alt_dsize == 0 )
         {
-            DisableDetect();
+            DetectionEngine::disable_content();
             return 0;
         }
         {
@@ -911,7 +911,7 @@ int HttpInspectMain(HTTPINSPECT_CONF* conf, Packet* p)
 
                 if ( !GetHttpBufferMask() && (p->alt_dsize == 0)  )
                 {
-                    DisableDetect();
+                    DetectionEngine::disable_content();
                     return 0;
                 }
             }
@@ -928,7 +928,7 @@ int HttpInspectMain(HTTPINSPECT_CONF* conf, Packet* p)
             if ( !(session->server_conf->inspect_response) &&
                 IsLimitedDetect(p) && !p->alt_dsize )
             {
-                DisableDetect();
+                DetectionEngine::disable_content();
                 return 0;
             }
             ClearHttpBuffers();
@@ -1102,7 +1102,7 @@ int HttpInspectMain(HTTPINSPECT_CONF* conf, Packet* p)
             if ( IsLimitedDetect(p) &&
                 !GetHttpBufferMask() && (p->alt_dsize == 0)  )
             {
-                DisableDetect();
+                DetectionEngine::disable_content();
                 return 0;
             }
         }
@@ -1120,7 +1120,7 @@ int HttpInspectMain(HTTPINSPECT_CONF* conf, Packet* p)
         */
         {
             Profile exclude(hiPerfStats);
-            DetectionEngine::process(p);
+            DetectionEngine::detect(p);
         }
 
         /*
@@ -1133,11 +1133,8 @@ int HttpInspectMain(HTTPINSPECT_CONF* conf, Packet* p)
 
     if ( iCallDetect == 0 )
     {
-        // DetectionEngine::process called at least once from above pkt processing loop.
-        // FIXIT-M this throws off nfp rules like this:
-        // alert tcp any any -> any any ( sid:1; msg:"1"; flags:S; )
-        // (check shutdown counts)
-        DisableInspection();
+        // DetectionEngine::detect called at least once from above pkt processing loop.
+        DetectionEngine::disable_content();
     }
 
     return 0;

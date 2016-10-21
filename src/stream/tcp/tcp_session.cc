@@ -49,10 +49,12 @@
 #include <errno.h>
 #include <assert.h>
 
+#include "log/log.h"
 #include "main/snort_types.h"
 #include "main/snort_debug.h"
 #include "main/snort_config.h"
-#include "detection/detection_util.h"
+#include "detection/detection_engine.h"
+#include "detection/rules.h"
 #include "hash/sfxhash.h"
 #include "utils/util.h"
 #include "utils/util_net.h"
@@ -994,7 +996,7 @@ void TcpSession::do_packet_analysis_post_checks(Packet* p)
 
     if (pkt_action_mask & ACTION_DISABLE_INSPECTION)
     {
-        DisableInspection();
+        DetectionEngine::disable_all();
 
         DebugFormat(DEBUG_STREAM_STATE,
             "Stream Ignoring packet from %s. Session marked as ignore\n",

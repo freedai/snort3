@@ -46,6 +46,7 @@
 #include "fp_create.h"
 #include "service_map.h"
 #include "detection_util.h"
+#include "detection_engine.h"
 #include "detection_options.h"
 #include "pattern_match_data.h"
 #include "pcrm.h"
@@ -996,7 +997,7 @@ static inline int fpEvalHeaderSW(PortGroup* port_group, Packet* p,
         p->packet_flags &= ~PKT_IP_RULE;
     }
 
-    if ( do_detect_content )
+    if ( DetectionEngine::content_enabled() )
     {
         if ( fp->get_stream_insert() || !(p->packet_flags & PKT_STREAM_INSERT) )
             if ( fp_search(port_group, p, check_ports, type, omd) )
@@ -1209,9 +1210,10 @@ static void fpEvalPacketUdp(Packet* p)
     if (tmp_api.pay_len() >  udp::UDP_HEADER_LEN)
         p->dsize = tmp_api.pay_len() - udp::UDP_HEADER_LEN;
 
-    auto save_do_detect_content = do_detect_content;
+    auto save_detect = DetectionEngine::get_detects();
+
     if ( p->dsize )
-        do_detect_content = true;
+        DetectionEngine::enable_content();
 
     fpEvalHeaderUdp(p, omd);
 
@@ -1220,8 +1222,8 @@ static void fpEvalPacketUdp(Packet* p)
     p->ptrs.udph = tmp_udph;
     p->data = tmp_data;
     p->dsize = tmp_dsize;
-
-    do_detect_content = save_do_detect_content;
+    
+    DetectionEngine::set_detects(save_detect);
 }
 
 /*
