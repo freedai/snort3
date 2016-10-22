@@ -25,6 +25,7 @@
 #include <thread>
 #include <vector>
 
+#include "detection/detection_engine.h"
 #include "flow/flow.h"
 #include "framework/inspector.h"
 #include "managers/inspector_manager.h"
@@ -54,6 +55,7 @@ bool sfvar_ip_in(sfip_var_t*, const sfip_t*) { return false; }
 SO_PUBLIC Inspector* InspectorManager::get_inspector(const char*, bool) { return s_inspector; }
 InspectorType InspectorManager::get_type(const char*) { return InspectorType::IT_BINDER; }
 Inspector* InspectorManager::get_binder() { return nullptr; }
+uint8_t* DetectionEngine::get_buffer(unsigned&) { return nullptr; }
 
 BinderModule::BinderModule() : Module("B", "B Help", nullptr, true) { }
 BinderModule::~BinderModule() { }

@@ -37,8 +37,6 @@ class HttpApi;
 class HttpInspect : public Inspector
 {
 public:
-    static THREAD_LOCAL uint8_t body_buffer[HttpEnums::MAX_OCTETS];
-
     HttpInspect(const HttpParaList* params_);
     ~HttpInspect() { delete params; }
 

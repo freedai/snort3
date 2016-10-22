@@ -55,8 +55,6 @@ HttpInspect::HttpInspect(const HttpParaList* params_) : params(params_)
 #endif
 }
 
-THREAD_LOCAL uint8_t HttpInspect::body_buffer[MAX_OCTETS];
-
 THREAD_LOCAL HttpMsgSection* HttpInspect::latest_section = nullptr;
 
 HttpEnums::InspectSection HttpInspect::get_latest_is()
