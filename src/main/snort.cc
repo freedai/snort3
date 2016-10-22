@@ -662,8 +662,6 @@ void Snort::thread_init_unprivileged()
     EventTrace_Init();
     detection_filter_init(snort_conf->detection_filter_config);
 
-    otnx_match_data_init(snort_conf->num_rule_types);
-
     EventManager::open_outputs();
     IpsManager::setup_options();
     ActionManager::thread_init(snort_conf);
@@ -704,7 +702,6 @@ void Snort::thread_term()
 
     Profiler::consolidate_stats();
 
-    otnx_match_data_term();
     detection_filter_term();
     EventTrace_Term();
     CleanupTag();
@@ -828,7 +825,6 @@ DAQ_Verdict Snort::packet_callback(
     Profile profile(totalPerfStats);
 
     pc.total_from_daq++;
-    rule_eval_pkt_count++;
     packet_time_update(&pkthdr->ts);
 
     if ( snort_conf->pkt_skip && pc.total_from_daq <= snort_conf->pkt_skip )
@@ -836,6 +832,7 @@ DAQ_Verdict Snort::packet_callback(
 
     s_switcher->start();
     s_packet = s_switcher->get_context()->packet;
+    s_switcher->get_context()->pkt_count++;
 
     sfthreshold_reset();
     ActionManager::reset_queue();

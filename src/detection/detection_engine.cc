@@ -50,6 +50,9 @@ DetectionEngine::DetectionEngine()
 DetectionEngine::~DetectionEngine()
 { clear_packet(); }
 
+IpsContext* DetectionEngine::get_context()
+{ return Snort::get_switcher()->get_context(); }
+
 SF_EVENTQ* DetectionEngine::get_event_queue()
 { return Snort::get_switcher()->get_context()->equeue; }
 
@@ -58,6 +61,9 @@ Packet* DetectionEngine::get_current_packet()
 
 Packet* DetectionEngine::get_packet()
 { return get_current_packet(); }
+
+MpseStash* DetectionEngine::get_stash()
+{ return Snort::get_switcher()->get_context()->stash; }
 
 Packet* DetectionEngine::set_packet()
 {
