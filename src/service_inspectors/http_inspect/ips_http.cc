@@ -26,6 +26,7 @@
 #include "hash/sfhashfcn.h"
 #include "log/messages.h"
 
+#include "http_flow_data.h"
 #include "http_inspect.h"
 #include "http_msg_head_shared.h"
 #include "ips_http.h"
@@ -205,18 +206,20 @@ int HttpIpsOption::eval(Cursor& c, Packet* p)
     if (!p->flow || !p->flow->gadget)
         return DETECTION_OPTION_NO_MATCH;
 
-    if (HttpInspect::get_latest_is() != inspect_section)
+    HttpFlowData* fd = (HttpFlowData*)p->flow->get_flow_data(HttpFlowData::http_flow_id);
+
+    if (HttpInspect::get_latest_is(fd) != inspect_section)
     {
         // It is OK to provide a body buffer during the detection section. If there actually is
         // a body buffer available then the detection section must also be the first body section.
-        if (! ((inspect_section == IS_BODY) && (HttpInspect::get_latest_is() == IS_DETECTION)) )
+        if (! ((inspect_section == IS_BODY) && (HttpInspect::get_latest_is(fd) == IS_DETECTION)) )
             return DETECTION_OPTION_NO_MATCH;
     }
 
     InspectionBuffer hb;
 
     if (! ((HttpInspect*)(p->flow->gadget))->
-           http_get_buf((unsigned)buffer_index, sub_id, form, nullptr, hb))
+           http_get_buf((unsigned)buffer_index, sub_id, form, p, hb))
         return DETECTION_OPTION_NO_MATCH;
 
     c.set(key, hb.data, hb.len);

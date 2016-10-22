@@ -53,7 +53,7 @@ public:
     {
         return new HttpStreamSplitter(is_client_to_server, this);
     }
-    static HttpEnums::InspectSection get_latest_is();
+    static HttpEnums::InspectSection get_latest_is(HttpFlowData*);
 
 private:
     friend HttpApi;
@@ -62,10 +62,7 @@ private:
     const Field& process(const uint8_t* data, const uint16_t dsize, Flow* const flow,
         HttpEnums::SourceId source_id_, bool buf_owner) const;
     void clear(HttpFlowData* session_data, HttpEnums::SourceId source_id);
-    static HttpEnums::SourceId get_latest_src() { return (latest_section != nullptr) ?
-        latest_section->get_source_id() : HttpEnums::SRC__NOT_COMPUTE; }
-
-    static THREAD_LOCAL HttpMsgSection* latest_section;
+    static HttpEnums::SourceId get_latest_src(HttpFlowData*);
 
     const HttpParaList* const params;
 };
