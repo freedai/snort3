@@ -55,39 +55,50 @@ HttpInspect::HttpInspect(const HttpParaList* params_) : params(params_)
 #endif
 }
 
-THREAD_LOCAL HttpMsgSection* HttpInspect::latest_section = nullptr;
-
-HttpEnums::InspectSection HttpInspect::get_latest_is()
+HttpEnums::InspectSection HttpInspect::get_latest_is(HttpFlowData* fd)
 {
-    return (latest_section != nullptr) ?
-        latest_section->get_inspection_section() : HttpEnums::IS_NONE;
+    return (fd and fd->latest_section != nullptr) ?
+        fd->latest_section->get_inspection_section() : HttpEnums::IS_NONE;
 }
 
-bool HttpInspect::get_buf(InspectionBuffer::Type ibt, Packet*, InspectionBuffer& b)
+HttpEnums::SourceId HttpInspect::get_latest_src(HttpFlowData* fd)
 {
+    return (fd and fd->latest_section != nullptr) ?
+        fd->latest_section->get_source_id() : HttpEnums::SRC__NOT_COMPUTE;
+}
+
+bool HttpInspect::get_buf(InspectionBuffer::Type ibt, Packet* p, InspectionBuffer& b)
+{
+    HttpFlowData* fd = (HttpFlowData*)p->flow->get_flow_data(HttpFlowData::http_flow_id);
+
     switch (ibt)
     {
     case InspectionBuffer::IBT_KEY:
-        return http_get_buf(HTTP_BUFFER_URI, 0, 0, nullptr, b);
+        return http_get_buf(HTTP_BUFFER_URI, 0, 0, p, b);
+
     case InspectionBuffer::IBT_HEADER:
-        if (get_latest_is() == IS_TRAILER)
-            return http_get_buf(HTTP_BUFFER_TRAILER, 0, 0, nullptr, b);
+        if (get_latest_is(fd) == IS_TRAILER)
+            return http_get_buf(HTTP_BUFFER_TRAILER, 0, 0, p, b);
         else
-            return http_get_buf(HTTP_BUFFER_HEADER, 0, 0, nullptr, b);
+            return http_get_buf(HTTP_BUFFER_HEADER, 0, 0, p, b);
+
     case InspectionBuffer::IBT_BODY:
-        return http_get_buf(HTTP_BUFFER_CLIENT_BODY, 0, 0, nullptr, b);
+        return http_get_buf(HTTP_BUFFER_CLIENT_BODY, 0, 0, p, b);
+
     default:
         return false;
     }
 }
 
-bool HttpInspect::http_get_buf(unsigned id, uint64_t sub_id, uint64_t form, Packet*,
-    InspectionBuffer& b)
+bool HttpInspect::http_get_buf(
+    unsigned id, uint64_t sub_id, uint64_t form, Packet* p, InspectionBuffer& b)
 {
-    if (latest_section == nullptr)
+    HttpFlowData* fd = (HttpFlowData*)p->flow->get_flow_data(HttpFlowData::http_flow_id);
+
+    if ( !fd or !fd->latest_section )
         return false;
 
-    const Field& buffer = latest_section->get_classic_buffer(id, sub_id, form);
+    const Field& buffer = fd->latest_section->get_classic_buffer(id, sub_id, form);
 
     if (buffer.length <= 0)
         return false;
@@ -97,27 +108,29 @@ bool HttpInspect::http_get_buf(unsigned id, uint64_t sub_id, uint64_t form, Pack
     return true;
 }
 
-bool HttpInspect::get_fp_buf(InspectionBuffer::Type ibt, Packet*, InspectionBuffer& b)
+bool HttpInspect::get_fp_buf(InspectionBuffer::Type ibt, Packet* p, InspectionBuffer& b)
 {
+    HttpFlowData* fd = (HttpFlowData*)p->flow->get_flow_data(HttpFlowData::http_flow_id);
+
     // Fast pattern buffers only supplied at specific times
     switch (ibt)
     {
     case InspectionBuffer::IBT_KEY:
-        if ((get_latest_is() != IS_DETECTION) || (get_latest_src() != SRC_CLIENT))
+        if ((get_latest_is(fd) != IS_DETECTION) || (get_latest_src(fd) != SRC_CLIENT))
             return false;
         break;
     case InspectionBuffer::IBT_HEADER:
-        if ((get_latest_is() != IS_DETECTION) && (get_latest_is() != IS_TRAILER))
+        if ((get_latest_is(fd) != IS_DETECTION) && (get_latest_is(fd) != IS_TRAILER))
             return false;
         break;
     case InspectionBuffer::IBT_BODY:
-        if ((get_latest_is() != IS_DETECTION) && (get_latest_is() != IS_BODY))
+        if ((get_latest_is(fd) != IS_DETECTION) && (get_latest_is(fd) != IS_BODY))
             return false;
         break;
     default:
         return false;
     }
-    return get_buf(ibt, nullptr, b);
+    return get_buf(ibt, p, b);
 }
 
 const Field& HttpInspect::process(const uint8_t* data, const uint16_t dsize, Flow* const flow,
@@ -131,31 +144,31 @@ const Field& HttpInspect::process(const uint8_t* data, const uint16_t dsize, Flo
     switch (session_data->section_type[source_id])
     {
     case SEC_REQUEST:
-        latest_section = new HttpMsgRequest(
+        session_data->latest_section = new HttpMsgRequest(
             data, dsize, session_data, source_id, buf_owner, flow, params);
         break;
     case SEC_STATUS:
-        latest_section = new HttpMsgStatus(
+        session_data->latest_section = new HttpMsgStatus(
             data, dsize, session_data, source_id, buf_owner, flow, params);
         break;
     case SEC_HEADER:
-        latest_section = new HttpMsgHeader(
+        session_data->latest_section = new HttpMsgHeader(
             data, dsize, session_data, source_id, buf_owner, flow, params);
         break;
     case SEC_BODY_CL:
-        latest_section = new HttpMsgBodyCl(
+        session_data->latest_section = new HttpMsgBodyCl(
             data, dsize, session_data, source_id, buf_owner, flow, params);
         break;
     case SEC_BODY_OLD:
-        latest_section = new HttpMsgBodyOld(
+        session_data->latest_section = new HttpMsgBodyOld(
             data, dsize, session_data, source_id, buf_owner, flow, params);
         break;
     case SEC_BODY_CHUNK:
-        latest_section = new HttpMsgBodyChunk(
+        session_data->latest_section = new HttpMsgBodyChunk(
             data, dsize, session_data, source_id, buf_owner, flow, params);
         break;
     case SEC_TRAILER:
-        latest_section = new HttpMsgTrailer(
+        session_data->latest_section = new HttpMsgTrailer(
             data, dsize, session_data, source_id, buf_owner, flow, params);
         break;
     default:
@@ -167,13 +180,13 @@ const Field& HttpInspect::process(const uint8_t* data, const uint16_t dsize, Flo
         return Field::FIELD_NULL;
     }
 
-    latest_section->analyze();
-    latest_section->update_flow();
+    session_data->latest_section->analyze();
+    session_data->latest_section->update_flow();
 
 #ifdef REG_TEST
     if (HttpTestManager::use_test_output())
     {
-        latest_section->print_section(HttpTestManager::get_output_file());
+        session_data->latest_section->print_section(HttpTestManager::get_output_file());
         fflush(HttpTestManager::get_output_file());
         if (HttpTestManager::use_test_input())
         {
@@ -184,18 +197,19 @@ const Field& HttpInspect::process(const uint8_t* data, const uint16_t dsize, Flo
     }
 #endif
 
-    return latest_section->get_detect_buf();
+    return session_data->latest_section->get_detect_buf();
 }
 
 void HttpInspect::clear(Packet* p)
 {
-    latest_section = nullptr;
-
     HttpFlowData* session_data =
         (HttpFlowData*)p->flow->get_flow_data(HttpFlowData::http_flow_id);
 
     if (session_data == nullptr)
         return;
+
+    session_data->latest_section = nullptr;  // FIXIT-L always redundant or unnecessary?
+
     assert((p->is_from_client()) || (p->is_from_server()));
     assert(!((p->is_from_client()) && (p->is_from_server())));
     SourceId source_id = (p->is_from_client()) ? SRC_CLIENT : SRC_SERVER;
@@ -208,7 +222,7 @@ void HttpInspect::clear(Packet* p)
 
 void HttpInspect::clear(HttpFlowData* session_data, SourceId source_id)
 {
-    latest_section = nullptr;
+    session_data->latest_section = nullptr;
 
     // If current transaction is complete then we are done with it and should reclaim the space
     if ((source_id == SRC_SERVER) && (session_data->type_expected[SRC_SERVER] == SEC_STATUS) &&
