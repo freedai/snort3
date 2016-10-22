@@ -482,17 +482,17 @@ int TcpReassembler::flush_data_segments(Packet* p, uint32_t toSeq)
             || SEQ_EQ(tsn->seq +  bytes_to_copy, toSeq) )
             flags |= PKT_PDU_TAIL;
 
-        const StreamBuffer* sb = tracker->splitter->reassemble(
+        const StreamBuffer sb = tracker->splitter->reassemble(
             session->flow, total, bytes_flushed, tsn->payload(),
             bytes_to_copy, flags, bytes_copied);
 
         flags = 0;
 
-        if ( sb )
+        if ( sb.data )
         {
-            s5_pkt->data = sb->data;
-            s5_pkt->dsize = sb->length;
-            assert(sb->length <= s5_pkt->max_dsize);
+            s5_pkt->data = sb.data;
+            s5_pkt->dsize = sb.length;
+            assert(sb.length <= s5_pkt->max_dsize);
 
             bytes_to_copy = bytes_copied;
         }
@@ -533,7 +533,7 @@ int TcpReassembler::flush_data_segments(Packet* p, uint32_t toSeq)
         }
         seglist.next = tsn->next;
 
-        if ( sb || !seglist.next )
+        if ( sb.data || !seglist.next )
             break;
 
         if ( bytes_flushed + seglist.next->payload_size >= StreamSplitter::max_buf )

@@ -17,16 +17,19 @@
 //--------------------------------------------------------------------------
 // http_stream_splitter_reassemble.cc author Tom Peters <thopeter@cisco.com>
 
+#include "http_stream_splitter.h"
+
 #include <assert.h>
 #include <sys/types.h>
 
+#include "detection/detection_engine.h"
 #include "file_api/file_flows.h"
+
 #include "http_enum.h"
 #include "http_field.h"
 #include "http_test_manager.h"
 #include "http_test_input.h"
 #include "http_inspect.h"
-#include "http_stream_splitter.h"
 
 using namespace HttpEnums;
 
@@ -198,10 +201,10 @@ void HttpStreamSplitter::decompress_copy(uint8_t* buffer, uint32_t& offset, cons
     offset += length;
 }
 
-const StreamBuffer* HttpStreamSplitter::reassemble(Flow* flow, unsigned total, unsigned,
+const StreamBuffer HttpStreamSplitter::reassemble(Flow* flow, unsigned total, unsigned,
     const uint8_t* data, unsigned len, uint32_t flags, unsigned& copied)
 {
-    static THREAD_LOCAL StreamBuffer http_buf;
+    StreamBuffer http_buf { nullptr, 0 };
 
     copied = len;
 
@@ -217,7 +220,7 @@ const StreamBuffer* HttpStreamSplitter::reassemble(Flow* flow, unsigned total, u
         {
             if (!(flags & PKT_PDU_TAIL))
             {
-                return nullptr;
+                return http_buf;
             }
             bool tcp_close;
             uint8_t* test_buffer;
@@ -231,7 +234,7 @@ const StreamBuffer* HttpStreamSplitter::reassemble(Flow* flow, unsigned total, u
             {
                 // Source ID does not match test data, no test data was flushed, or there is no
                 // more test data
-                return nullptr;
+                return http_buf;
             }
             data = test_buffer;
             total = len;
@@ -247,7 +250,7 @@ const StreamBuffer* HttpStreamSplitter::reassemble(Flow* flow, unsigned total, u
 
     if (session_data->section_type[source_id] == SEC__NOT_COMPUTE)
     {   // FIXIT-M In theory this check should not be necessary
-        return nullptr;
+        return http_buf;
     }
 
     // FIXIT-P stream should be ehanced to do discarding for us. For now flush-then-discard here
@@ -280,7 +283,7 @@ const StreamBuffer* HttpStreamSplitter::reassemble(Flow* flow, unsigned total, u
                 }
             }
         }
-        return nullptr;
+        return http_buf;
     }
 
     HttpModule::increment_peg_counts(PEG_REASSEMBLE);
@@ -298,7 +301,9 @@ const StreamBuffer* HttpStreamSplitter::reassemble(Flow* flow, unsigned total, u
         // and in ~HttpFlowData where the buffer will be deleted if it has not been processed.
         if (is_body)
         {
-            buffer = HttpInspect::body_buffer;
+            unsigned max;
+            buffer = DetectionEngine::get_buffer(max);
+            assert(MAX_OCTETS <= max);
         }
         else
         {
@@ -356,10 +361,10 @@ const StreamBuffer* HttpStreamSplitter::reassemble(Flow* flow, unsigned total, u
                 fflush(HttpTestManager::get_output_file());
             }
 #endif
-            return &http_buf;
+            return http_buf;
         }
         my_inspector->clear(session_data, source_id);
     }
-    return nullptr;
+    return http_buf;
 }
 
