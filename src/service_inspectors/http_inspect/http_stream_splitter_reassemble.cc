@@ -339,8 +339,10 @@ const StreamBuffer HttpStreamSplitter::reassemble(Flow* flow, unsigned total, un
         // framework and forwarded to detection even if it is empty. Other body sections and the
         // trailer section are only forwarded if nonempty. The start line section and header
         // sections other than the detection section are never forwarded.
-        if (((send_to_detection.length > 0) && (HttpInspect::get_latest_is() != IS_NONE)) ||
-            ((send_to_detection.length == 0) && (HttpInspect::get_latest_is() == IS_DETECTION)))
+        if (((send_to_detection.length > 0) &&
+            (HttpInspect::get_latest_is(session_data) != IS_NONE)) ||
+            ((send_to_detection.length == 0) &&
+            (HttpInspect::get_latest_is(session_data) == IS_DETECTION)))
         {
             // FIXIT-M kludge until we work out issues with returning an empty buffer
             if (send_to_detection.length > 0)

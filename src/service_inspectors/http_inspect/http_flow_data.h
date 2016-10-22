@@ -66,6 +66,8 @@ private:
 
     // 0 element refers to client request, 1 element refers to server response
 
+    // FIXIT-P reorganize HttpFlowData to minimize void space
+
     // *** StreamSplitter internal data - scan()
     HttpCutter* cutter[2] = { nullptr, nullptr };
 
@@ -109,6 +111,7 @@ private:
         HttpEnums::STAT_NOT_PRESENT };
     MimeSession* mime_state = nullptr;  // SRC_CLIENT only
     UtfDecodeSession* utf_state = nullptr; //SRC_SERVER only
+    class HttpMsgSection* latest_section = nullptr;
     uint64_t expected_trans_num[2] = { 1, 1 };
 
     // number of user data octets seen so far (regular body or chunks)
