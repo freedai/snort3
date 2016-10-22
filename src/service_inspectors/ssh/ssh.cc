@@ -34,7 +34,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#include "events/event_queue.h"
+#include "detection/detection_engine.h"
 #include "file_api/file_api.h"
 #include "framework/inspector.h"
 #include "log/messages.h"
@@ -264,10 +264,10 @@ static void snort_ssh(SSH_PROTO_CONF* config, Packet* p)
                 {
                     // Probable exploit in progress.
                     if (sessp->version == SSH_VERSION_1)
-                        SnortEventqAdd(GID_SSH, SSH_EVENT_CRC32);
+                        DetectionEngine::queue_event(GID_SSH, SSH_EVENT_CRC32);
 
                     else
-                        SnortEventqAdd(GID_SSH, SSH_EVENT_RESPOVERFLOW);
+                        DetectionEngine::queue_event(GID_SSH, SSH_EVENT_RESPOVERFLOW);
 
                     Stream::stop_inspection(p->flow, p, SSN_DIR_BOTH, -1, 0);
                 }
@@ -353,7 +353,7 @@ static unsigned int ProcessSSHProtocolVersionExchange(SSH_PROTO_CONF* config, SS
              * continue checking after that point*/
             (SSHCheckStrlen(&version_stringp[6], config->MaxServerVersionLen-6)))
         {
-            SnortEventqAdd(GID_SSH, SSH_EVENT_SECURECRT);
+            DetectionEngine::queue_event(GID_SSH, SSH_EVENT_SECURECRT);
         }
     }
     else if ( p->dsize >= 6 &&
@@ -428,7 +428,7 @@ static unsigned int ProcessSSHKeyInitExchange(SSHData* sessionp, Packet* p,
         if ( dsize < 4 )
         {
             {
-                SnortEventqAdd(GID_SSH, SSH_EVENT_PAYLOAD_SIZE);
+                DetectionEngine::queue_event(GID_SSH, SSH_EVENT_PAYLOAD_SIZE);
             }
 
             return 0;
@@ -446,7 +446,7 @@ static unsigned int ProcessSSHKeyInitExchange(SSHData* sessionp, Packet* p,
         if ( dsize < length )
         {
             {
-                SnortEventqAdd(GID_SSH, SSH_EVENT_PAYLOAD_SIZE);
+                DetectionEngine::queue_event(GID_SSH, SSH_EVENT_PAYLOAD_SIZE);
             }
 
             return 0;
@@ -462,7 +462,7 @@ static unsigned int ProcessSSHKeyInitExchange(SSHData* sessionp, Packet* p,
         {
             if (offset == 0)
             {
-                SnortEventqAdd(GID_SSH, SSH_EVENT_PAYLOAD_SIZE);
+                DetectionEngine::queue_event(GID_SSH, SSH_EVENT_PAYLOAD_SIZE);
             }
 
             return 0;
@@ -481,7 +481,7 @@ static unsigned int ProcessSSHKeyInitExchange(SSHData* sessionp, Packet* p,
             else
             {
                 /* Server msg not from server. */
-                SnortEventqAdd(GID_SSH, SSH_EVENT_WRONGDIR);
+                DetectionEngine::queue_event(GID_SSH, SSH_EVENT_WRONGDIR);
             }
             break;
         case SSH_MSG_V1_CMSG_SESSION_KEY:
@@ -493,7 +493,7 @@ static unsigned int ProcessSSHKeyInitExchange(SSHData* sessionp, Packet* p,
             else
             {
                 /* Client msg not from client. */
-                SnortEventqAdd(GID_SSH, SSH_EVENT_WRONGDIR);
+                DetectionEngine::queue_event(GID_SSH, SSH_EVENT_WRONGDIR);
             }
             break;
         default:
@@ -552,7 +552,7 @@ static unsigned int ProcessSSHKeyInitExchange(SSHData* sessionp, Packet* p,
     {
         {
             /* Unrecognized version. */
-            SnortEventqAdd(GID_SSH, SSH_EVENT_VERSION);
+            DetectionEngine::queue_event(GID_SSH, SSH_EVENT_VERSION);
         }
 
         return 0;
@@ -608,7 +608,7 @@ static unsigned int ProcessSSHKeyExchange(SSHData* sessionp, Packet* p,
             }
             {
                 /* Invalid packet length. */
-                SnortEventqAdd(GID_SSH, SSH_EVENT_PAYLOAD_SIZE);
+                DetectionEngine::queue_event(GID_SSH, SSH_EVENT_PAYLOAD_SIZE);
             }
 
             return 0;
@@ -625,7 +625,7 @@ static unsigned int ProcessSSHKeyExchange(SSHData* sessionp, Packet* p,
             else
             {
                 /* Client msg from server. */
-                SnortEventqAdd(GID_SSH, SSH_EVENT_WRONGDIR);
+                DetectionEngine::queue_event(GID_SSH, SSH_EVENT_WRONGDIR);
             }
             break;
         case SSH_MSG_KEXDH_REPLY:
@@ -641,7 +641,7 @@ static unsigned int ProcessSSHKeyExchange(SSHData* sessionp, Packet* p,
             else
             {
                 /* Server msg from client. */
-                SnortEventqAdd(GID_SSH, SSH_EVENT_WRONGDIR);
+                DetectionEngine::queue_event(GID_SSH, SSH_EVENT_WRONGDIR);
             }
             break;
         case SSH_MSG_KEXDH_GEX_REQ:
@@ -653,7 +653,7 @@ static unsigned int ProcessSSHKeyExchange(SSHData* sessionp, Packet* p,
             else
             {
                 /* Server msg from client. */
-                SnortEventqAdd(GID_SSH, SSH_EVENT_WRONGDIR);
+                DetectionEngine::queue_event(GID_SSH, SSH_EVENT_WRONGDIR);
             }
             break;
         case SSH_MSG_KEXDH_GEX_GRP:
@@ -665,7 +665,7 @@ static unsigned int ProcessSSHKeyExchange(SSHData* sessionp, Packet* p,
             else
             {
                 /* Client msg from server. */
-                SnortEventqAdd(GID_SSH, SSH_EVENT_WRONGDIR);
+                DetectionEngine::queue_event(GID_SSH, SSH_EVENT_WRONGDIR);
             }
             break;
         case SSH_MSG_KEXDH_GEX_INIT:
@@ -677,7 +677,7 @@ static unsigned int ProcessSSHKeyExchange(SSHData* sessionp, Packet* p,
             else
             {
                 /* Server msg from client. */
-                SnortEventqAdd(GID_SSH, SSH_EVENT_WRONGDIR);
+                DetectionEngine::queue_event(GID_SSH, SSH_EVENT_WRONGDIR);
             }
             break;
         case SSH_MSG_NEWKEYS:

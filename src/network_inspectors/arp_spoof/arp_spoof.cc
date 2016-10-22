@@ -82,8 +82,7 @@
 #include "main/snort_types.h"
 #include "main/snort_debug.h"
 #include "detection/detect.h"
-#include "events/event.h"
-#include "events/event_queue.h"
+#include "detection/detection_engine.h"
 #include "parser/parser.h"
 #include "utils/util.h"
 #include "profiler/profiler.h"
@@ -200,40 +199,28 @@ void ArpSpoof::eval(Packet* p)
     case ARPOP_REQUEST:
         if (memcmp((u_char*)eh->ether_dst, (u_char*)bcast, 6) != 0)
         {
-            SnortEventqAdd(GID_ARP_SPOOF,
-                ARPSPOOF_UNICAST_ARP_REQUEST);
-
-            DebugMessage(DEBUG_INSPECTOR,
-                "MODNAME: Unicast request\n");
+            DetectionEngine::queue_event(GID_ARP_SPOOF, ARPSPOOF_UNICAST_ARP_REQUEST);
+            DebugMessage(DEBUG_INSPECTOR, "MODNAME: Unicast request\n");
         }
         else if (memcmp((u_char*)eh->ether_src,
             (u_char*)ah->arp_sha, 6) != 0)
         {
-            SnortEventqAdd(GID_ARP_SPOOF,
-                ARPSPOOF_ETHERFRAME_ARP_MISMATCH_SRC);
-
-            DebugMessage(DEBUG_INSPECTOR,
-                "MODNAME: Ethernet/ARP mismatch request\n");
+            DetectionEngine::queue_event(GID_ARP_SPOOF, ARPSPOOF_ETHERFRAME_ARP_MISMATCH_SRC);
+            DebugMessage(DEBUG_INSPECTOR, "MODNAME: Ethernet/ARP mismatch request\n");
         }
         break;
     case ARPOP_REPLY:
         if (memcmp((u_char*)eh->ether_src,
             (u_char*)ah->arp_sha, 6) != 0)
         {
-            SnortEventqAdd(GID_ARP_SPOOF,
-                ARPSPOOF_ETHERFRAME_ARP_MISMATCH_SRC);
-
-            DebugMessage(DEBUG_INSPECTOR,
-                "MODNAME: Ethernet/ARP mismatch reply src\n");
+            DetectionEngine::queue_event(GID_ARP_SPOOF, ARPSPOOF_ETHERFRAME_ARP_MISMATCH_SRC);
+            DebugMessage(DEBUG_INSPECTOR, "MODNAME: Ethernet/ARP mismatch reply src\n");
         }
         else if (memcmp((u_char*)eh->ether_dst,
             (u_char*)ah->arp_tha, 6) != 0)
         {
-            SnortEventqAdd(GID_ARP_SPOOF,
-                ARPSPOOF_ETHERFRAME_ARP_MISMATCH_DST);
-
-            DebugMessage(DEBUG_INSPECTOR,
-                "MODNAME: Ethernet/ARP mismatch reply dst\n");
+            DetectionEngine::queue_event(GID_ARP_SPOOF, ARPSPOOF_ETHERFRAME_ARP_MISMATCH_DST);
+            DebugMessage(DEBUG_INSPECTOR, "MODNAME: Ethernet/ARP mismatch reply dst\n");
         }
         break;
     }
@@ -255,10 +242,8 @@ void ArpSpoof::eval(Packet* p)
         // in p doesn't match the MAC address in ipme, then generate an alert
         if ( cmp_ether_src || cmp_arp_sha )
         {
-            SnortEventqAdd(GID_ARP_SPOOF, ARPSPOOF_ARP_CACHE_OVERWRITE_ATTACK);
-
-            DebugMessage(DEBUG_INSPECTOR,
-                "MODNAME: Attempted ARP cache overwrite attack\n");
+            DetectionEngine::queue_event(GID_ARP_SPOOF, ARPSPOOF_ARP_CACHE_OVERWRITE_ATTACK);
+            DebugMessage(DEBUG_INSPECTOR, "MODNAME: Attempted ARP cache overwrite attack\n");
         }
     }
 

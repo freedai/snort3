@@ -19,8 +19,8 @@
 // http_module_test.cc author Tom Peters <thopeter@cisco.com>
 // unit test main
 
+#include "detection/detection_engine.h"
 #include "log/messages.h"
-#include "events/event_queue.h"
 
 #include "service_inspectors/http_inspect/http_module.h"
 #include "service_inspectors/http_inspect/http_test_manager.h"
@@ -41,7 +41,7 @@ void show_stats(PegCount*, const PegInfo*, IndexVec&, const char*, FILE*) { }
 void show_stats(SimpleStats*, const char*) { }
 
 void Value::get_bits(std::bitset<256ul>&) const {}
-int SnortEventqAdd(unsigned int, unsigned int, RuleType) { return 0; }
+int DetectionEngine::queue_event(unsigned int, unsigned int, RuleType) { return 0; }
 
 int32_t str_to_code(const uint8_t*, const int32_t, const StrCode []) { return 0; }
 int32_t substr_to_code(const uint8_t*, const int32_t, const StrCode []) { return 0; }

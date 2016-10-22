@@ -35,7 +35,7 @@ void show_stats( PegCount*, const PegInfo*, IndexVec&, const char*, FILE*) { }
 void show_stats(SimpleStats*, const char*) { }
 
 void Value::get_bits(std::bitset<256ul>&) const {}
-int SnortEventqAdd(unsigned int, unsigned int, RuleType) { return 0; }
+int DetectionEngine::queue_event(unsigned int, unsigned int, RuleType) { return 0; }
 
 TEST_GROUP(http_inspect_uri_norm)
 {

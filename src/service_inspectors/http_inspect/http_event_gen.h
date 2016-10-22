@@ -23,7 +23,7 @@
 #include <assert.h>
 #include <bitset>
 
-#include "events/event_queue.h"
+#include "detection/detection_engine.h"
 
 #include "http_enum.h"
 #include "utils/util.h"
@@ -42,7 +42,7 @@ public:
         assert(((int)sid > 0) && ((int)sid <= MAX));
         if (!events_generated[sid-1])
         {
-            SnortEventqAdd(HttpEnums::HTTP_GID, (uint32_t)sid);
+            DetectionEngine::queue_event(HttpEnums::HTTP_GID, (uint32_t)sid);
             events_generated[sid-1] = true;
         }
     }

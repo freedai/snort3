@@ -23,7 +23,7 @@
 #include <assert.h>
 #include <strings.h>
 
-#include "events/event_queue.h"
+#include "detection/detection_engine.h"
 
 static THREAD_LOCAL uint64_t gid_client = 0;
 static THREAD_LOCAL uint64_t gid_server = 0;
@@ -40,7 +40,7 @@ static void queue(unsigned gid, uint64_t mask)
 
     while ( (sid = ffs(mask)) )
     {
-        SnortEventqAdd(gid, sid);
+        DetectionEngine::queue_event(gid, sid);
         mask ^= (1 << (sid-1));
     }
 }

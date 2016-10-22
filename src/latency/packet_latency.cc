@@ -24,6 +24,7 @@
 #include <sstream>
 #include <vector>
 
+#include "detection/detection_engine.h"
 #include "log/messages.h"
 #include "main/snort_config.h"
 #include "main/thread.h"
@@ -200,7 +201,7 @@ static struct SnortConfigWrapper : public ConfigWrapper
 static struct SnortEventHandler : public EventHandler
 {
     void handle(const Event&) override
-    { SnortEventqAdd(GID_LATENCY, LATENCY_EVENT_PACKET_FASTPATHED); }
+    { DetectionEngine::queue_event(GID_LATENCY, LATENCY_EVENT_PACKET_FASTPATHED); }
 } event_handler;
 
 static struct SnortLogHandler : public EventHandler

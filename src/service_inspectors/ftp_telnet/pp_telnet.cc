@@ -47,10 +47,11 @@
 #include "config.h"
 #endif
 
+#include "detection/detection_engine.h"
+#include "detection/detection_util.h"
+
 #include "ftpp_return_codes.h"
 #include "telnet_module.h"
-
-#include "detection/detection_util.h"
 
 #define NUL 0x00
 #define CR 0x0d
@@ -140,7 +141,7 @@ int normalize_telnet(
                     if (tnssn)
                     {
                         tnssn->encr_state = 1;
-                        SnortEventqAdd(GID_TELNET, TELNET_ENCRYPTED);
+                        DetectionEngine::queue_event(GID_TELNET, TELNET_ENCRYPTED);
 
                         if (!tnssn->telnet_conf->check_encrypted_data)
                         {
@@ -247,7 +248,7 @@ int normalize_telnet(
                         tnssn->telnet_conf->ayt_threshold))
                     {
                         /* Alert on consecutive AYT commands */
-                        SnortEventqAdd(GID_TELNET, TELNET_AYT_OVERFLOW);
+                        DetectionEngine::queue_event(GID_TELNET, TELNET_AYT_OVERFLOW);
                         tnssn->consec_ayt = 0;
                         return FTPP_ALERT;
                     }
@@ -337,7 +338,7 @@ int normalize_telnet(
                     if (tnssn)
                     {
                         tnssn->encr_state = 1;
-                        SnortEventqAdd(GID_TELNET, TELNET_ENCRYPTED);
+                        DetectionEngine::queue_event(GID_TELNET, TELNET_ENCRYPTED);
 
                         if (!tnssn->telnet_conf->check_encrypted_data)
                         {
@@ -383,7 +384,7 @@ int normalize_telnet(
                 else
                 {
                     /* Alert on SB without SE */
-                    SnortEventqAdd(GID_TELNET, TELNET_SB_NO_SE);
+                    DetectionEngine::queue_event(GID_TELNET, TELNET_SB_NO_SE);
                     ret = FTPP_ALERT;
                 }
 

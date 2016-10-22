@@ -22,9 +22,10 @@
 
 #include "modbus_paf.h"
 
+#include "detection/detection_engine.h"
+
 #include "modbus_decode.h"
 #include "modbus_module.h"
-#include "events/event_queue.h"
 
 #define MODBUS_MIN_HDR_LEN 2        // Enough for Unit ID + Function
 #define MODBUS_MAX_HDR_LEN 254      // Max PDU size is 260, 6 bytes already seen
@@ -73,7 +74,7 @@ StreamSplitter::Status ModbusSplitter::scan(
             if ((modbus_length < MODBUS_MIN_HDR_LEN) ||
                 (modbus_length > MODBUS_MAX_HDR_LEN))
             {
-                SnortEventqAdd(GID_MODBUS, MODBUS_BAD_LENGTH);
+                DetectionEngine::queue_event(GID_MODBUS, MODBUS_BAD_LENGTH);
             }
 
             *fp = modbus_length + bytes_processed;

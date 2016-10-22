@@ -65,7 +65,7 @@
 #include "framework/mpse.h"
 #include "filters/sfthreshold.h"
 #include "filters/rate_filter.h"
-#include "events/event_wrapper.h"
+#include "detection/detection_engine.h"
 #include "packet_io/active.h"
 #include "parser/parser.h"
 #include "utils/sflsq.h"
@@ -742,7 +742,7 @@ static inline int fpFinalSelectEvent(OTNX_MATCH_DATA* o, Packet* p)
                     /*
                     **  QueueEvent
                     */
-                    if ( SnortEventqAdd(otn) )
+                    if ( DetectionEngine::queue_event(otn) )
                         pc.queue_limit++;
 
                     tcnt++;

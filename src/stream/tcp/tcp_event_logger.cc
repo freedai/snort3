@@ -19,11 +19,11 @@
 // tcp_event_logger.cc author davis mcpherson <davmcphe@@cisco.com>
 // Created on: Jul 30, 2015
 
-#include "strings.h"
-#include "main/snort_config.h"
-#include "events/event_queue.h"
-#include "filters/sfrf.h"
+#include "detection/detection_engine.h"
 #include "detection/rules.h"
+#include "filters/sfrf.h"
+#include "main/snort_config.h"
+#include "strings.h"
 
 #include "tcp_defs.h"
 #include "tcp_module.h"
@@ -94,7 +94,7 @@ void TcpEventLogger::log_internal_event(uint32_t eventSid)
         STREAM_DEBUG_WRAP(DebugMessage(DEBUG_STREAM_STATE, "Stream raised internal event %d\n",
                 eventSid); );
 
-        SnortEventqAdd(GENERATOR_INTERNAL, eventSid);
+        DetectionEngine::queue_event(GENERATOR_INTERNAL, eventSid);
     }
 }
 
@@ -105,7 +105,7 @@ void TcpEventLogger::log_tcp_events()
         uint32_t idx = ffs(tcp_events);
         if ( idx )
         {
-            SnortEventqAdd(GID_STREAM_TCP, tcp_event_sids[ idx ].sid);
+            DetectionEngine::queue_event(GID_STREAM_TCP, tcp_event_sids[ idx ].sid);
             tcp_events ^= tcp_event_sids[ idx ].event_id;
             tcpStats.events++;
         }

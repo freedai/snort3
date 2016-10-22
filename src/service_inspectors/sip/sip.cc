@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
+#include "detection/detection_engine.h"
 #include "log/messages.h"
 #include "main/snort_types.h"
 #include "main/snort_debug.h"
@@ -65,7 +66,7 @@ static SIPData* SetNewSIPData(Packet* p, SIP_PROTO_CONF* config)
     if (numSessions > config->maxNumSessions)
     {
         if (!MaxSessionsAlerted)
-            SnortEventqAdd(GID_SIP, SIP_EVENT_MAX_SESSIONS);
+            DetectionEngine::queue_event(GID_SIP, SIP_EVENT_MAX_SESSIONS);
         MaxSessionsAlerted = 1;
         return NULL;
     }

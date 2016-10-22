@@ -76,6 +76,7 @@
 #include <errno.h>
 #include <array>
 
+#include "detection/detection_engine.h"
 #include "framework/codec.h"
 #include "flow/flow_control.h"
 #include "ip_defrag.h"
@@ -93,7 +94,6 @@
 #include "profiler/profiler.h"
 #include "time/timersub.h"
 #include "utils/stats.h"
-#include "detection/detection_engine.h"
 #include "utils/safec.h"
 
 /*  D E F I N E S  **************************************************/
@@ -223,7 +223,7 @@ static void FragPrintEngineConfig(FragEngine* engine)
  */
 static inline void EventAnomIpOpts(FragEngine*)
 {
-    SnortEventqAdd(GID_DEFRAG, DEFRAG_IPOPTIONS);
+    DetectionEngine::queue_event(GID_DEFRAG, DEFRAG_IPOPTIONS);
     ip_stats.alerts++;
 }
 
@@ -236,7 +236,7 @@ static inline void EventAnomIpOpts(FragEngine*)
  */
 static inline void EventAttackTeardrop(FragEngine*)
 {
-    SnortEventqAdd(GID_DEFRAG, DEFRAG_TEARDROP);
+    DetectionEngine::queue_event(GID_DEFRAG, DEFRAG_TEARDROP);
     ip_stats.alerts++;
 }
 
@@ -249,7 +249,7 @@ static inline void EventAttackTeardrop(FragEngine*)
  */
 static inline void EventTinyFragments(FragEngine*)
 {
-    SnortEventqAdd(GID_DEFRAG, DEFRAG_TINY_FRAGMENT);
+    DetectionEngine::queue_event(GID_DEFRAG, DEFRAG_TINY_FRAGMENT);
     ip_stats.alerts++;
 }
 
@@ -262,7 +262,7 @@ static inline void EventTinyFragments(FragEngine*)
  */
 static inline void EventExcessiveOverlap(FragEngine*)
 {
-    SnortEventqAdd(GID_DEFRAG, DEFRAG_EXCESSIVE_OVERLAP);
+    DetectionEngine::queue_event(GID_DEFRAG, DEFRAG_EXCESSIVE_OVERLAP);
     ip_stats.alerts++;
 }
 
@@ -276,7 +276,7 @@ static inline void EventExcessiveOverlap(FragEngine*)
  */
 static inline void EventAnomShortFrag(FragEngine*)
 {
-    SnortEventqAdd(GID_DEFRAG, DEFRAG_SHORT_FRAG);
+    DetectionEngine::queue_event(GID_DEFRAG, DEFRAG_SHORT_FRAG);
     ip_stats.alerts++;
     ip_stats.anomalies++;
 }
@@ -291,7 +291,7 @@ static inline void EventAnomShortFrag(FragEngine*)
  */
 static inline void EventAnomOversize(FragEngine*)
 {
-    SnortEventqAdd(GID_DEFRAG, DEFRAG_ANOMALY_OVERSIZE);
+    DetectionEngine::queue_event(GID_DEFRAG, DEFRAG_ANOMALY_OVERSIZE);
     ip_stats.alerts++;
     ip_stats.anomalies++;
 }
@@ -306,7 +306,7 @@ static inline void EventAnomOversize(FragEngine*)
  */
 static inline void EventAnomZeroFrag(FragEngine*)
 {
-    SnortEventqAdd(GID_DEFRAG, DEFRAG_ANOMALY_ZERO);
+    DetectionEngine::queue_event(GID_DEFRAG, DEFRAG_ANOMALY_ZERO);
     ip_stats.alerts++;
     ip_stats.anomalies++;
 }
@@ -320,7 +320,7 @@ static inline void EventAnomZeroFrag(FragEngine*)
  */
 static inline void EventAnomBadsizeLg(FragEngine*)
 {
-    SnortEventqAdd(GID_DEFRAG, DEFRAG_ANOMALY_BADSIZE_LG);
+    DetectionEngine::queue_event(GID_DEFRAG, DEFRAG_ANOMALY_BADSIZE_LG);
     ip_stats.alerts++;
     ip_stats.anomalies++;
 }
@@ -334,7 +334,7 @@ static inline void EventAnomBadsizeLg(FragEngine*)
  */
 static inline void EventAnomBadsizeSm(FragEngine*)
 {
-    SnortEventqAdd(GID_DEFRAG, DEFRAG_ANOMALY_BADSIZE_SM);
+    DetectionEngine::queue_event(GID_DEFRAG, DEFRAG_ANOMALY_BADSIZE_SM);
     ip_stats.alerts++;
     ip_stats.anomalies++;
 }
@@ -348,7 +348,7 @@ static inline void EventAnomBadsizeSm(FragEngine*)
  */
 static inline void EventAnomOverlap(FragEngine*)
 {
-    SnortEventqAdd(GID_DEFRAG, DEFRAG_ANOMALY_OVLP);
+    DetectionEngine::queue_event(GID_DEFRAG, DEFRAG_ANOMALY_OVLP);
     ip_stats.alerts++;
     ip_stats.anomalies++;
 }
@@ -362,7 +362,7 @@ static inline void EventAnomOverlap(FragEngine*)
  */
 static inline void EventAnomMinTtl(FragEngine*)
 {
-    SnortEventqAdd(GID_DEFRAG, DEFRAG_MIN_TTL_EVASION);
+    DetectionEngine::queue_event(GID_DEFRAG, DEFRAG_MIN_TTL_EVASION);
     ip_stats.alerts++;
 }
 

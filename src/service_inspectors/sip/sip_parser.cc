@@ -26,6 +26,7 @@
 #ifndef HAVE_PARSER_H
 #include <ctype.h>
 
+#include "detection/detection_engine.h"
 #include "main/snort_types.h"
 #include "main/snort_debug.h"
 #include "main/snort_config.h"
@@ -365,7 +366,7 @@ static int sip_startline_parse(SIPMsg* msg, const char* buff, char* end, char** 
         /*Check SIP version number, end with SP*/
         if (!(sip_is_valid_version(buff + SIP_KEYWORD_LEN) && (*(buff + SIP_VERSION_LEN) == ' ')))
         {
-            SnortEventqAdd(GID_SIP, SIP_EVENT_INVALID_VERSION);
+            DetectionEngine::queue_event(GID_SIP, SIP_EVENT_INVALID_VERSION);
         }
 
         space = (char*)strchr(buff, ' ');
@@ -374,7 +375,7 @@ static int sip_startline_parse(SIPMsg* msg, const char* buff, char* end, char** 
         statusCode = SnortStrtoul(space + 1, NULL, 10);
         if (( statusCode > MAX_STAT_CODE) || (statusCode < MIN_STAT_CODE ))
         {
-            SnortEventqAdd(GID_SIP, SIP_EVENT_BAD_STATUS_CODE);
+            DetectionEngine::queue_event(GID_SIP, SIP_EVENT_BAD_STATUS_CODE);
             msg->status_code =  MAX_STAT_CODE + 1;
         }
         else
@@ -419,9 +420,9 @@ static int sip_startline_parse(SIPMsg* msg, const char* buff, char* end, char** 
         DebugFormat(DEBUG_SIP, "uri: %.*s, length: %hu\n", msg->uriLen, msg->uri,
             msg->uriLen);
         if (0 == msg->uriLen)
-            SnortEventqAdd(GID_SIP, SIP_EVENT_EMPTY_REQUEST_URI);
+            DetectionEngine::queue_event(GID_SIP, SIP_EVENT_EMPTY_REQUEST_URI);
         else if (config->maxUriLen && (msg->uriLen > config->maxUriLen))
-            SnortEventqAdd(GID_SIP, SIP_EVENT_BAD_URI);
+            DetectionEngine::queue_event(GID_SIP, SIP_EVENT_BAD_URI);
 
         version = space + 1;
         if (version + SIP_VERSION_LEN > end)
@@ -431,12 +432,12 @@ static int sip_startline_parse(SIPMsg* msg, const char* buff, char* end, char** 
         /*Check SIP version number, end with CRLF*/
         if (!sip_is_valid_version(*lineEnd - SIP_VERSION_NUM_LEN - numOfLineBreaks))
         {
-            SnortEventqAdd(GID_SIP, SIP_EVENT_INVALID_VERSION);
+            DetectionEngine::queue_event(GID_SIP, SIP_EVENT_INVALID_VERSION);
         }
 
         if (NULL == method)
         {
-            SnortEventqAdd(GID_SIP, SIP_EVENT_UNKOWN_METHOD);
+            DetectionEngine::queue_event(GID_SIP, SIP_EVENT_UNKOWN_METHOD);
             return false;
         }
     }
@@ -580,57 +581,57 @@ static int sip_check_headers(SIPMsg* msg, SIP_PROTO_CONF* config)
     int ret = true;
     if (0 == msg->fromLen)
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_EMPTY_FROM);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_EMPTY_FROM);
         ret =  false;
     }
     else if (config->maxFromLen && (msg->fromLen > config->maxFromLen))
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_BAD_FROM);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_BAD_FROM);
         ret = false;
     }
 
     if (0 == msg->toLen)
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_EMPTY_TO);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_EMPTY_TO);
         ret = false;
     }
     else if (config->maxToLen && (msg->toLen > config->maxToLen))
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_BAD_TO);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_BAD_TO);
         ret = false;
     }
 
     if (0 == msg->callIdLen)
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_EMPTY_CALL_ID);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_EMPTY_CALL_ID);
         ret = false;
     }
     else if ( config->maxCallIdLen && (msg->callIdLen > config->maxCallIdLen))
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_BAD_CALL_ID);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_BAD_CALL_ID);
         ret = false;
     }
 
     if (msg->cseqnum > MAX_NUM_32BIT)
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_BAD_CSEQ_NUM);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_BAD_CSEQ_NUM);
         ret = false;
     }
     if ( config->maxRequestNameLen && (msg->cseqNameLen > config->maxRequestNameLen))
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_BAD_CSEQ_NAME);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_BAD_CSEQ_NAME);
         ret = false;
     }
 
     /*Alert here after parsing*/
     if (0 == msg->viaLen)
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_EMPTY_VIA);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_EMPTY_VIA);
         ret = false;
     }
     else if (config->maxViaLen && (msg->viaLen > config->maxViaLen))
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_BAD_VIA);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_BAD_VIA);
         ret = false;
     }
 
@@ -639,18 +640,18 @@ static int sip_check_headers(SIPMsg* msg, SIP_PROTO_CONF* config)
     // Contact is required for invite message
     if ((0 == msg->contactLen)&&(msg->methodFlag == SIP_METHOD_INVITE)&&(0 == msg->status_code))
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_EMPTY_CONTACT);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_EMPTY_CONTACT);
         ret = false;
     }
     else if (config->maxContactLen && (msg->contactLen > config->maxContactLen))
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_BAD_CONTACT);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_BAD_CONTACT);
         ret = false;
     }
 
     if ((0 == msg->contentTypeLen) && (msg->content_len > 0))
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_EMPTY_CONTENT_TYPE);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_EMPTY_CONTENT_TYPE);
         ret = false;
     }
 
@@ -934,7 +935,7 @@ static int sip_parse_cseq(SIPMsg* msg, const char* start, const char* end, SIP_P
 
     if (NULL == method)
     {
-        SnortEventqAdd(GID_SIP, SIP_EVENT_INVALID_CSEQ_NAME);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_INVALID_CSEQ_NAME);
         return SIP_PARSE_ERROR;
     }
     else
@@ -944,7 +945,7 @@ static int sip_parse_cseq(SIPMsg* msg, const char* start, const char* end, SIP_P
             msg->methodFlag = method->methodFlag;
         else if ( method->methodFlag != msg->methodFlag)
         {
-            SnortEventqAdd(GID_SIP, SIP_EVENT_MISMATCH_METHOD);
+            DetectionEngine::queue_event(GID_SIP, SIP_EVENT_MISMATCH_METHOD);
         }
         DebugFormat(DEBUG_SIP, "Found the method: %s, Flag: 0x%x\n",
             method->methodName, method->methodFlag);
@@ -1049,12 +1050,12 @@ static int sip_parse_content_len(SIPMsg* msg, const char* start, const char*,
 
     msg->content_len = SnortStrtoul(start, &next, 10);
     if ( config->maxContentLen && (msg->content_len > config->maxContentLen))
-        SnortEventqAdd(GID_SIP, SIP_EVENT_BAD_CONTENT_LEN);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_BAD_CONTENT_LEN);
     /*Check the length of the value*/
     if (next > start + SIP_CONTENT_LEN) // This check is to prevent overflow
     {
         if (config->maxContentLen)
-            SnortEventqAdd(GID_SIP, SIP_EVENT_BAD_CONTENT_LEN);
+            DetectionEngine::queue_event(GID_SIP, SIP_EVENT_BAD_CONTENT_LEN);
         return SIP_PARSE_ERROR;
     }
     DebugFormat(DEBUG_SIP, "Content length: %u\n", msg->content_len);
@@ -1300,7 +1301,7 @@ int sip_parse(SIPMsg* msg, const char* buff, char* end, SIP_PROTO_CONF* config)
     msg->bodyLen = end - start;
     /*Disable this check for TCP. Revisit this again when PAF enabled for SIP*/
     if ((!msg->isTcp)&&(msg->content_len > msg->bodyLen))
-        SnortEventqAdd(GID_SIP, SIP_EVENT_MISMATCH_CONTENT_LEN);
+        DetectionEngine::queue_event(GID_SIP, SIP_EVENT_MISMATCH_CONTENT_LEN);
 
     if (msg->content_len < msg->bodyLen)
         status = sip_body_parse(msg, start, start + msg->content_len, &nextIndex);
@@ -1319,11 +1320,11 @@ int sip_parse(SIPMsg* msg, const char* buff, char* end, SIP_PROTO_CONF* config)
         if (true == sip_startline_parse(msg, start + msg->content_len, end, &nextIndex,
             config))
         {
-            SnortEventqAdd(GID_SIP, SIP_EVENT_MULTI_MSGS);
+            DetectionEngine::queue_event(GID_SIP, SIP_EVENT_MULTI_MSGS);
         }
         else
         {
-            SnortEventqAdd(GID_SIP, SIP_EVENT_MISMATCH_CONTENT_LEN);
+            DetectionEngine::queue_event(GID_SIP, SIP_EVENT_MISMATCH_CONTENT_LEN);
         }
     }
     return status;
