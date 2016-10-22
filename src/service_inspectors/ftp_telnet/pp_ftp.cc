@@ -40,16 +40,18 @@
 #include "config.h"
 #endif
 
+#include "detection/detection_engine.h"
+#include "detection/detection_util.h"
+#include "file_api/file_service.h"
+#include "sfip/sf_ip.h"
+#include "utils/util.h"
+
 #include "ft_main.h"
 #include "ftp_bounce_lookup.h"
 #include "ftp_cmd_lookup.h"
 #include "ftp_module.h"
 #include "ftpp_return_codes.h"
 #include "pp_telnet.h"
-
-#include "detection/detection_util.h"
-#include "file_api/file_service.h"
-#include "sfip/sf_ip.h"
 
 #ifndef MAXHOSTNAMELEN /* Why doesn't Windows define this? */
 #define MAXHOSTNAMELEN 256
@@ -592,7 +594,7 @@ static int validate_param(Packet* p,
             if (numPercents >= MAX_PERCENT_SIGNS)
             {
                 /* Alert on string format attack in parameter */
-                SnortEventqAdd(GID_FTP, FTP_PARAMETER_STR_FORMAT);
+                DetectionEngine::queue_event(GID_FTP, FTP_PARAMETER_STR_FORMAT);
                 return FTPP_ALERTED;
             }
         }
@@ -745,7 +747,7 @@ static int validate_param(Packet* p,
                 /* Alert on invalid IP address for PORT */
                 if (alert)
                 {
-                    SnortEventqAdd(GID_FTP, FTP_BOUNCE);
+                    DetectionEngine::queue_event(GID_FTP, FTP_BOUNCE);
                     /* Return here -- because we will likely want to
                      * inspect the data traffic over a bounced data
                      * connection */
@@ -932,7 +934,7 @@ int initialize_ftp(FTP_SESSION* session, Packet* p, int iMode)
     if (iRet != FTPP_SUCCESS && iRet != FTPP_NORMALIZED)
     {
         if (iRet == FTPP_ALERT)
-            SnortEventqAdd(GID_FTP, FTP_EVASIVE_TELNET_CMD);
+            DetectionEngine::queue_event(GID_FTP, FTP_EVASIVE_TELNET_CMD);
 
         return iRet;
     }
@@ -943,7 +945,7 @@ int initialize_ftp(FTP_SESSION* session, Packet* p, int iMode)
         if ( (iMode == FTPP_SI_CLIENT_MODE) ||
             (iMode == FTPP_SI_SERVER_MODE) )
         {
-            SnortEventqAdd(GID_FTP, FTP_TELNET_CMD);
+            DetectionEngine::queue_event(GID_FTP, FTP_TELNET_CMD);
             return FTPP_ALERT; /* Nothing else to do since we alerted */
         }
 
@@ -1235,9 +1237,8 @@ static int do_stateful_checks(FTP_SESSION* session, Packet* p,
             {
                 /* Could check that response msg includes "TLS" */
                 session->encr_state = AUTH_TLS_ENCRYPTED;
-                SnortEventqAdd(GID_FTP, FTP_ENCRYPTED);
-                DebugMessage(DEBUG_FTPTELNET,
-                    "FTP stream is now TLS encrypted\n");
+                DetectionEngine::queue_event(GID_FTP, FTP_ENCRYPTED);
+                DebugMessage(DEBUG_FTPTELNET, "FTP stream is now TLS encrypted\n");
             }
             break;
         case AUTH_SSL_CMD_ISSUED:
@@ -1245,18 +1246,16 @@ static int do_stateful_checks(FTP_SESSION* session, Packet* p,
             {
                 /* Could check that response msg includes "SSL" */
                 session->encr_state = AUTH_SSL_ENCRYPTED;
-                SnortEventqAdd(GID_FTP, FTP_ENCRYPTED);
-                DebugMessage(DEBUG_FTPTELNET,
-                    "FTP stream is now SSL encrypted\n");
+                DetectionEngine::queue_event(GID_FTP, FTP_ENCRYPTED);
+                DebugMessage(DEBUG_FTPTELNET, "FTP stream is now SSL encrypted\n");
             }
             break;
         case AUTH_UNKNOWN_CMD_ISSUED:
             if (rsp_code == 234)
             {
                 session->encr_state = AUTH_UNKNOWN_ENCRYPTED;
-                SnortEventqAdd(GID_FTP, FTP_ENCRYPTED);
-                DebugMessage(DEBUG_FTPTELNET,
-                    "FTP stream is now encrypted\n");
+                DetectionEngine::queue_event(GID_FTP, FTP_ENCRYPTED);
+                DebugMessage(DEBUG_FTPTELNET, "FTP stream is now encrypted\n");
             }
             break;
         }
@@ -1412,7 +1411,7 @@ int check_ftp(FTP_SESSION* ftpssn, Packet* p, int iMode)
                 if (ftpssn->encr_state == 0)
                 {
                     ftpssn->encr_state = AUTH_UNKNOWN_ENCRYPTED;
-                    SnortEventqAdd(GID_FTP, FTP_ENCRYPTED);
+                    DetectionEngine::queue_event(GID_FTP, FTP_ENCRYPTED);
 
                     if (!ftpssn->server_conf->check_encrypted_data)
                     {
@@ -1433,7 +1432,7 @@ int check_ftp(FTP_SESSION* ftpssn, Packet* p, int iMode)
                 if ( req->cmd_size > ftpssn->server_conf->max_cmd_len )
                 {
                     /* Alert, cmd not found */
-                    SnortEventqAdd(GID_FTP, FTP_INVALID_CMD);
+                    DetectionEngine::queue_event(GID_FTP, FTP_INVALID_CMD);
                     state = FTP_CMD_INV;
                 }
                 else
@@ -1445,7 +1444,7 @@ int check_ftp(FTP_SESSION* ftpssn, Packet* p, int iMode)
                     if ((iRet == FTPP_NOT_FOUND) || (CmdConf == nullptr))
                     {
                         /* Alert, cmd not found */
-                        SnortEventqAdd(GID_FTP, FTP_INVALID_CMD);
+                        DetectionEngine::queue_event(GID_FTP, FTP_INVALID_CMD);
                         state = FTP_CMD_INV;
                     }
                     else
@@ -1491,7 +1490,7 @@ int check_ftp(FTP_SESSION* ftpssn, Packet* p, int iMode)
                 if (ftpssn->encr_state == 0)
                 {
                     ftpssn->encr_state = AUTH_UNKNOWN_ENCRYPTED;
-                    SnortEventqAdd(GID_FTP, FTP_ENCRYPTED);
+                    DetectionEngine::queue_event(GID_FTP, FTP_ENCRYPTED);
 
                     if (!ftpssn->server_conf->check_encrypted_data)
                     {
@@ -1675,7 +1674,7 @@ int check_ftp(FTP_SESSION* ftpssn, Packet* p, int iMode)
                 (req->param_size > ftpssn->client_conf->max_resp_len))
             {
                 /* Alert on response message overflow */
-                SnortEventqAdd(GID_FTP, FTP_RESPONSE_LENGTH_OVERFLOW);
+                DetectionEngine::queue_event(GID_FTP, FTP_RESPONSE_LENGTH_OVERFLOW);
                 iRet = FTPP_ALERT;
             }
 
@@ -1694,7 +1693,7 @@ int check_ftp(FTP_SESSION* ftpssn, Packet* p, int iMode)
                 (req->param_size > ftpssn->client_conf->max_resp_len))
             {
                 /* Alert on response message overflow */
-                SnortEventqAdd(GID_FTP, FTP_RESPONSE_LENGTH_OVERFLOW);
+                DetectionEngine::queue_event(GID_FTP, FTP_RESPONSE_LENGTH_OVERFLOW);
                 iRet = FTPP_ALERT;
             }
             break;
@@ -1707,7 +1706,7 @@ int check_ftp(FTP_SESSION* ftpssn, Packet* p, int iMode)
                 (req->param_size > ftpssn->client_conf->max_resp_len))
             {
                 /* Alert on response message overflow */
-                SnortEventqAdd(GID_FTP, FTP_RESPONSE_LENGTH_OVERFLOW);
+                DetectionEngine::queue_event(GID_FTP, FTP_RESPONSE_LENGTH_OVERFLOW);
                 iRet = FTPP_ALERT;
             }
             break;
@@ -1724,7 +1723,7 @@ int check_ftp(FTP_SESSION* ftpssn, Packet* p, int iMode)
                 if ( req->param_size > max )
                 {
                     /* Alert on param length overrun */
-                    SnortEventqAdd(GID_FTP, FTP_PARAMETER_LENGTH_OVERFLOW);
+                    DetectionEngine::queue_event(GID_FTP, FTP_PARAMETER_LENGTH_OVERFLOW);
                     DebugFormat(DEBUG_FTPTELNET, "FTP command: %.*s"
                         "parameter length overrun %u > %u \n",
                         req->cmd_size, req->cmd_begin, req->param_size, max);
@@ -1823,7 +1822,7 @@ int check_ftp(FTP_SESSION* ftpssn, Packet* p, int iMode)
                     if (iRet < 0)
                     {
                         /* Set Alert on malformatted parameter */
-                        SnortEventqAdd(GID_FTP, FTP_MALFORMED_PARAMETER);
+                        DetectionEngine::queue_event(GID_FTP, FTP_MALFORMED_PARAMETER);
                         iRet = FTPP_ALERT;
                         break;
                     }

@@ -28,10 +28,10 @@
 
 #include <ctype.h>
 
+#include "detection/detection_engine.h"
 #include "log/messages.h"
 #include "main/snort_types.h"
 #include "main/snort_debug.h"
-#include "events/event_queue.h"
 #include "protocols/packet.h"
 
 #include "gtp.h"
@@ -41,7 +41,7 @@
 
 static inline void alert(int sid)
 {
-    SnortEventqAdd(GID_GTP, sid);
+    DetectionEngine::queue_event(GID_GTP, sid);
     gtp_stats.events++;
 }
 

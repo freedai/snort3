@@ -24,7 +24,7 @@
 #include "config.h"
 #endif
 
-#include "events/event_queue.h"
+#include "detection/detection_engine.h"
 #include "managers/inspector_manager.h"
 #include "profiler/profiler.h"
 
@@ -85,7 +85,7 @@ void Modbus::eval(Packet* p)
         // If a packet is rebuilt, but not a full PDU, then it's garbage that
         // got flushed at the end of a stream.
         if ( p->packet_flags & (PKT_REBUILT_STREAM|PKT_PDU_HEAD) )
-            SnortEventqAdd(GID_MODBUS, MODBUS_BAD_LENGTH);
+            DetectionEngine::queue_event(GID_MODBUS, MODBUS_BAD_LENGTH);
 
         return;
     }

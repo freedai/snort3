@@ -29,7 +29,7 @@
 
 #include "main/snort_debug.h"
 #include "main/snort_types.h"
-#include "events/event_queue.h"
+#include "detection/detection_engine.h"
 #include "framework/inspector.h"
 #include "framework/module.h"
 #include "log/messages.h"
@@ -83,7 +83,7 @@ void Dpx::eval(Packet* p)
     assert(p->is_udp());
 
     if ( p->ptrs.dp == port && p->dsize > max )
-        SnortEventqAdd(DPX_GID, DPX_SID);
+        DetectionEngine::queue_event(DPX_GID, DPX_SID);
 
     ++dpxstats.total_packets;
 }
