@@ -118,8 +118,7 @@
 #include "log/messages.h"
 #include "main/snort_types.h"
 #include "main/snort_debug.h"
-#include "events/event.h"
-#include "events/event_queue.h"
+#include "detection/detection_engine.h"
 #include "parser/parser.h"
 #include "utils/util.h"
 #include "profiler/profiler.h"
@@ -367,7 +366,7 @@ static int BoGetDirection(Packet* p, const char* pkt_data)
 
     if ( len >= BO_BUF_ATTACK_SIZE )
     {
-        SnortEventqAdd(GID_BO, BO_SNORT_BUFFER_ATTACK);
+        DetectionEngine::queue_event(GID_BO, BO_SNORT_BUFFER_ATTACK);
         return BO_FROM_UNKNOWN;
     }
 
@@ -531,18 +530,18 @@ void BackOrifice::eval(Packet* p)
 
             if ( bo_direction == BO_FROM_CLIENT )
             {
-                SnortEventqAdd(GID_BO, BO_CLIENT_TRAFFIC_DETECT);
+                DetectionEngine::queue_event(GID_BO, BO_CLIENT_TRAFFIC_DETECT);
                 DebugMessage(DEBUG_INSPECTOR, "Client packet\n");
             }
 
             else if ( bo_direction == BO_FROM_SERVER )
             {
-                SnortEventqAdd(GID_BO, BO_SERVER_TRAFFIC_DETECT);
+                DetectionEngine::queue_event(GID_BO, BO_SERVER_TRAFFIC_DETECT);
                 DebugMessage(DEBUG_INSPECTOR, "Server packet\n");
             }
 
             else
-                SnortEventqAdd(GID_BO, BO_TRAFFIC_DETECT);
+                DetectionEngine::queue_event(GID_BO, BO_TRAFFIC_DETECT);
         }
     }
 }

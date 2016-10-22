@@ -22,14 +22,15 @@
 
 #include "smtp_xlink2state.h"
 
-#include <strings.h>
-#include <ctype.h>
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
+#include <strings.h>
+#include <ctype.h>
+#include <string.h>
+
+#include "detection/detection_engine.h"
 #include "smtp_util.h"
 #include "smtp_module.h"
 
@@ -250,7 +251,7 @@ int ParseXLink2State(SMTP_PROTO_CONF* config, Packet* p, SMTPData* smtp_ssn, con
         if (config->xlink2state == DROP_XLINK2STATE)
             Active::reset_session(p);
 
-        SnortEventqAdd(GID_SMTP, SMTP_XLINK2STATE_OVERFLOW);
+        DetectionEngine::queue_event(GID_SMTP, SMTP_XLINK2STATE_OVERFLOW);
         smtp_ssn->session_flags |= SMTP_FLAG_XLINK2STATE_ALERTED;
 
         return 1;

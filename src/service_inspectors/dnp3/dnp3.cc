@@ -20,10 +20,11 @@
 // based on work by Ryan Jordan
 
 #include "dnp3.h"
+
+#include "detection/detection_engine.h"
+
 #include "dnp3_paf.h"
 #include "dnp3_reassembly.h"
-
-#include "events/event_queue.h"
 
 THREAD_LOCAL Dnp3Stats dnp3_stats;
 THREAD_LOCAL ProfileStats dnp3_perf_stats;
@@ -134,7 +135,7 @@ static bool dnp3_process_udp(dnp3ProtoConf& config, dnp3_session_data_t* dnp3_se
 
     if (truncated_pdu)
     {
-        SnortEventqAdd(GID_DNP3, DNP3_DROPPED_FRAME);
+        DetectionEngine::queue_event(GID_DNP3, DNP3_DROPPED_FRAME);
     }
 
     return true;

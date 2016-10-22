@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#include "events/event_queue.h"
+#include "detection/detection_engine.h"
 #include "log/messages.h"
 #include "main/snort_types.h"
 #include "main/snort_debug.h"
@@ -396,7 +396,7 @@ static const uint8_t* IMAP_HandleCommand(Packet* p, IMAPData* imap_ssn, const ui
         }
         else
         {
-            SnortEventqAdd(GID_IMAP, IMAP_UNKNOWN_CMD);
+            DetectionEngine::queue_event(GID_IMAP, IMAP_UNKNOWN_CMD);
             DebugMessage(DEBUG_IMAP, "No known command found\n");
             return eol;
         }
@@ -566,7 +566,7 @@ static void IMAP_ProcessServerPacket(Packet* p, IMAPData* imap_ssn)
             }
             if ( (*ptr != '*') && (*ptr !='+') && (*ptr != '\r') && (*ptr != '\n') )
             {
-                SnortEventqAdd(GID_IMAP, IMAP_UNKNOWN_RESP);
+                DetectionEngine::queue_event(GID_IMAP, IMAP_UNKNOWN_RESP);
                 DebugMessage(DEBUG_IMAP, "Server response not found\n");
             }
         }
@@ -697,13 +697,13 @@ void ImapMime::decode_alert()
     switch ( decode_state->get_decode_type() )
     {
     case DECODE_B64:
-        SnortEventqAdd(GID_IMAP, IMAP_B64_DECODING_FAILED);
+        DetectionEngine::queue_event(GID_IMAP, IMAP_B64_DECODING_FAILED);
         break;
     case DECODE_QP:
-        SnortEventqAdd(GID_IMAP, IMAP_QP_DECODING_FAILED);
+        DetectionEngine::queue_event(GID_IMAP, IMAP_QP_DECODING_FAILED);
         break;
     case DECODE_UU:
-        SnortEventqAdd(GID_IMAP, IMAP_UU_DECODING_FAILED);
+        DetectionEngine::queue_event(GID_IMAP, IMAP_UU_DECODING_FAILED);
         break;
 
     default:

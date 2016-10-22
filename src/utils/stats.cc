@@ -34,6 +34,7 @@
 #include "managers/module_manager.h"
 #include "managers/codec_manager.h"
 #include "protocols/packet_manager.h"
+#include "detection/detection_engine.h"
 #include "detection/fp_create.h"
 #include "filters/sfthreshold.h"
 #include "profiler/profiler.h"
@@ -295,7 +296,7 @@ void DropStats()
     ModuleManager::dump_stats(snort_conf, exclude);
 
     // ensure proper counting of log_limit
-    SnortEventqResetCounts();
+    DetectionEngine::reset_counts();
 
     // FIXIT-L alert_pkts excludes rep hits
     if ( gpc.total_alert_pkts == gpc.alert_pkts )
