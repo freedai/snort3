@@ -23,12 +23,12 @@
 #include "config.h"
 #endif
 
+#include "detection/detection_engine.h"
 #include "file_api/file_api.h"
-#include "perf_monitor/perf_monitor.h"
 #include "file_api/file_flows.h"
 #include "profiler/profiler.h"
 #include "packet_io/sfdaq.h"
-#include "detection/detection_util.h"
+#include "perf_monitor/perf_monitor.h"
 #include "target_based/snort_protocols.h"
 
 #include "stream_file.h"
@@ -86,7 +86,7 @@ int FileSession::process(Packet* p)
         if (file_name)
             file_flows->set_file_name((uint8_t*)file_name, strlen(file_name));
     }
-    set_file_data((uint8_t*)p->data, p->dsize);
+    set_file_data(p->data, p->dsize);
 
     return 0;
 }
