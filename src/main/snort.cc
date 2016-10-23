@@ -721,8 +721,7 @@ void Snort::inspect(Packet* p)
     DetectionEngine de;
     main_hook(p);
 
-    DetectReset();  // FIXIT-H context
-
+    clear_file_data();
     DetectionEngine::set_detects(save_detect);
 }
 
@@ -744,7 +743,7 @@ DAQ_Verdict Snort::process_packet(
 
     if ( !(p->packet_flags & PKT_IGNORE) )
     {
-        DetectReset();
+        clear_file_data();
         main_hook(p);
     }
 

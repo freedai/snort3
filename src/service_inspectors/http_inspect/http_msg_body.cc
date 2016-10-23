@@ -76,7 +76,7 @@ void HttpMsgBody::analyze()
     if (file_data.length > 0)
     {
         file_data.start = detect_data.start;
-        set_file_data(const_cast<uint8_t*>(file_data.start), (unsigned)file_data.length);
+        set_next_file_data(file_data.start, (unsigned)file_data.length);
     }
 
     if (session_data->file_depth_remaining[source_id] > 0)
@@ -194,9 +194,13 @@ void HttpMsgBody::print_body_section(FILE* output)
     detect_data.print(output, "Detect data");
     get_classic_buffer(HTTP_BUFFER_CLIENT_BODY, 0, 0).print(output,
         HttpApi::classic_buffer_names[HTTP_BUFFER_CLIENT_BODY-1]);
-    if (g_file_data.len > 0)
+
+    DataPointer file_data;
+    DetectionEngine::get_next_file_data(file_data);
+
+    if (file_data.len > 0)
     {
-        Field(g_file_data.len, g_file_data.data).print(output, "file_data");
+        Field(file_data.len, file_data.data).print(output, "file_data");
     }
     HttpMsgSection::print_section_wrapup(output);
 }
