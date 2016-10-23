@@ -41,9 +41,6 @@ public:
     void process(Packet*, FragTracker*);
     void cleanup(FragTracker*);
 
-    void tinit();
-    void tterm();
-
     static void init();
 
 private:
@@ -58,7 +55,7 @@ private:
         Fragment* left, Fragment** retFrag);
 
     int dup_frag_node(FragTracker*, Fragment* left, Fragment** retFrag);
-    int expire(Packet*, FragTracker*, FragEngine*);
+    int expired(Packet*, FragTracker*, FragEngine*);
 
 private:
     FragEngine& engine;
