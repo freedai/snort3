@@ -27,14 +27,14 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include "main/snort_types.h"
-#include "main/snort_debug.h"
-#include "profiler/profiler.h"
 #include "detection/detection_defines.h"
-#include "detection/detection_util.h"
+#include "detection/detection_engine.h"
 #include "framework/cursor.h"
 #include "framework/ips_option.h"
 #include "framework/module.h"
+#include "main/snort_types.h"
+#include "main/snort_debug.h"
+#include "profiler/profiler.h"
 
 #define s_name "file_data"
 
@@ -60,13 +60,13 @@ int FileDataOption::eval(Cursor& c, Packet*)
 {
     Profile profile(fileDataPerfStats);
 
-    uint8_t* data = g_file_data.data;
-    uint16_t len = g_file_data.len;
+    DataPointer dp;
+    DetectionEngine::get_file_data(dp);
 
-    if ( !data || !len )
+    if ( !dp.data || !dp.len )
         return DETECTION_OPTION_NO_MATCH;
 
-    c.set(s_name, data, len);
+    c.set(s_name, dp.data, dp.len);
 
     return DETECTION_OPTION_MATCH;
 }
