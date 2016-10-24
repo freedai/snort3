@@ -23,10 +23,13 @@
 #include <time.h>
 #include <string>
 
-#include "main/snort_config.h"
-#include "log/text_log.h"
 #include "actions/actions.h"
+#include "events/event.h"
+#include "log/text_log.h"
+#include "main/snort_config.h"
 #include "utils/stats.h"
+
+#include "treenodes.h"
 
 #define LOG_CHARS 16
 

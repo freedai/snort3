@@ -56,6 +56,7 @@
 #include "latency/packet_latency.h"
 #include "latency/rule_latency.h"
 #include "log/messages.h"
+#include "log/log.h"
 #include "managers/action_manager.h"
 #include "managers/codec_manager.h"
 #include "managers/inspector_manager.h"

@@ -32,6 +32,8 @@ add_library (detection STATIC
     ips_context.cc
     pcrm.cc
     pcrm.h
+    rtn_checks.cc
+    rtn_checks.h
     service_map.cc
     service_map.h
     sfrim.cc

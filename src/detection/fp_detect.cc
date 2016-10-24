@@ -60,6 +60,7 @@
 #include "log/messages.h"
 #include "main/snort_config.h"
 #include "main/snort_debug.h"
+#include "events/event.h"
 #include "framework/cursor.h"
 #include "framework/inspector.h"
 #include "framework/ips_action.h"
