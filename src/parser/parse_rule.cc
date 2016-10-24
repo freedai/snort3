@@ -37,15 +37,9 @@
 #include <pwd.h>
 #include <fnmatch.h>
 
-#include "parser.h"
-#include "cmd_line.h"
-#include "config_file.h"
-#include "parse_conf.h"
-#include "parse_ports.h"
-
+#include "detection/rtn_checks.h"
 #include "detection/rules.h"
 #include "detection/treenodes.h"
-#include "detection/detect.h"
 #include "detection/tag.h"
 #include "detection/signature.h"
 #include "detection/fp_config.h"
@@ -76,6 +70,12 @@
 #include "managers/ips_manager.h"
 #include "managers/so_manager.h"
 #include "target_based/snort_protocols.h"
+
+#include "parser.h"
+#include "cmd_line.h"
+#include "config_file.h"
+#include "parse_conf.h"
+#include "parse_ports.h"
 
 #define SRC  0
 #define DST  1
