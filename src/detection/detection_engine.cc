@@ -176,6 +176,9 @@ bool DetectionEngine::offloaded(Packet* p)
 
 void DetectionEngine::idle()
 {
+    if ( !offload_ids )
+        return;
+
     while ( !offload_ids->empty() )
     {
         const struct timespec blip = { 0, 1 };
@@ -342,6 +345,8 @@ void DetectionEngine::inspect(Packet* p)
 
     log_events(p);
     reset();
+
+    Stream::check_flow_block_pending(p);
 }
 
 // Return 0 if no OTN since -1 return indicates queue limit reached.
