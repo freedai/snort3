@@ -24,6 +24,7 @@
 #include "config.h"
 #endif
 
+#include "detection/detection_engine.h"
 #include "flow/ha.h"
 #include "hash/zhash.h"
 #include "helpers/flag_context.h"
@@ -146,6 +147,7 @@ Flow* FlowCache::get(const FlowKey* key)
 
 int FlowCache::release(Flow* flow, PruneReason reason, bool do_cleanup)
 {
+    DetectionEngine::onload(flow);
     flow->reset(do_cleanup);
     prune_stats.update(reason);
     return remove(flow);
@@ -187,6 +189,9 @@ unsigned FlowCache::prune_stale(uint32_t thetime, const Flow* save_me)
             break;
         }
 #endif
+        if ( DetectionEngine::offloaded(flow) )
+            break;
+
         if ( flow->last_data_seen + config.pruning_timeout >= thetime )
             break;
 
@@ -242,7 +247,8 @@ unsigned FlowCache::prune_excess(const Flow* save_me)
         auto flow = static_cast<Flow*>(hash_table->first());
         assert(flow); // holds true because hash_table->get_count() > 0
 
-        if ( (save_me and flow == save_me) or flow->was_blocked() )
+        if ( (save_me and flow == save_me) or flow->was_blocked() or
+            DetectionEngine::offloaded(flow) )
         {
             // check for non-null save_me above to silence analyzer
             // "called C++ object pointer is null" here
@@ -306,7 +312,8 @@ unsigned FlowCache::timeout(unsigned num_flows, time_t thetime)
         if ( flow->last_data_seen + config.nominal_timeout > thetime )
             break;
 
-        if ( HighAvailabilityManager::in_standby(flow) )
+        if ( HighAvailabilityManager::in_standby(flow) or
+            DetectionEngine::offloaded(flow) )
         {
             flow = static_cast<Flow*>(hash_table->next());
             continue;

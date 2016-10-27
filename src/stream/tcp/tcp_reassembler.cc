@@ -609,6 +609,7 @@ int TcpReassembler::_flush_to_seq(uint32_t bytes, Packet* p, uint32_t pkt_flags)
     int32_t flushed_bytes;
     EncodeFlags enc_flags = 0;
 
+    DetectionEngine::onload(session->flow);
     s5_pkt = DetectionEngine::set_packet();
 
     DAQ_PktHdr_t pkth;
