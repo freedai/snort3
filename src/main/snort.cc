@@ -662,6 +662,7 @@ void Snort::thread_init_unprivileged()
     InitTag();
     EventTrace_Init();
     detection_filter_init(snort_conf->detection_filter_config);
+    DetectionEngine::thread_init();
 
     EventManager::open_outputs();
     IpsManager::setup_options();
@@ -679,6 +680,7 @@ void Snort::thread_term()
     if ( !snort_conf->dirty_pig )
         Stream::purge_flows();
 
+    DetectionEngine::idle();
     InspectorManager::thread_stop(snort_conf);
     ModuleManager::accumulate(snort_conf);
     InspectorManager::thread_term(snort_conf);
@@ -703,6 +705,7 @@ void Snort::thread_term()
 
     Profiler::consolidate_stats();
 
+    DetectionEngine::thread_term();
     detection_filter_term();
     EventTrace_Term();
     CleanupTag();
