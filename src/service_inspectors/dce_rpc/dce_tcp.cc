@@ -205,7 +205,7 @@ void Dce2Tcp::eval(Packet* p)
         DCE2_ResetRopts(&dce2_tcp_sess->sd.ropts);
 
         if (!DCE2_SsnAutodetected(&dce2_tcp_sess->sd))
-            DetectionEngine::disable_all();
+            DetectionEngine::disable_all(p);
 
         delete p->endianness;
         p->endianness = nullptr;

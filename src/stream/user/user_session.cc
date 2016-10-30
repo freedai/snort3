@@ -23,6 +23,7 @@
 #include "config.h"
 #endif
 
+#include "detection/detection_engine.h"
 #include "detection/rules.h"
 #include "main/snort.h"
 #include "perf_monitor/perf_monitor.h"
@@ -241,6 +242,8 @@ void UserTracker::flush(Packet* p, unsigned flush_amt, uint32_t flags)
 
 void UserTracker::process(Packet* p)
 {
+    DetectionEngine::onload(p->flow);
+
     uint32_t flags = 0;
     int flush_amt = scan(p, flags);
 

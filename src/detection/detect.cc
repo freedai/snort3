@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "events/event.h"
 #include "latency/packet_latency.h"
 #include "managers/event_manager.h"
 #include "managers/inspector_manager.h"

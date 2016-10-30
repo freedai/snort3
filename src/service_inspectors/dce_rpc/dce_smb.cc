@@ -3085,7 +3085,7 @@ void Dce2Smb::eval(Packet* p)
         DCE2_ResetRopts(&dce2_smb_sess->sd.ropts);
 
         if (!DCE2_SsnAutodetected(&dce2_smb_sess->sd))
-            DetectionEngine::disable_all();
+            DetectionEngine::disable_all(p);
 
         delete p->endianness;
         p->endianness = nullptr;
