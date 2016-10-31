@@ -46,6 +46,7 @@ Packet::Packet(bool packet_data)
     }
 
     obfuscator = nullptr;
+    endianness = nullptr;
 
     reset();
 }
@@ -59,8 +60,11 @@ Packet::~Packet()
 
 void Packet::reset()
 {
-    if (obfuscator)
+    if ( obfuscator )
         delete obfuscator;
+
+    if ( endianness )
+        delete endianness;  // FIXIT-L dce2 leaks in a few cases
 
     flow = nullptr;
     endianness = nullptr;

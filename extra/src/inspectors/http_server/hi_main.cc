@@ -1120,8 +1120,7 @@ int HttpInspectMain(HTTPINSPECT_CONF* conf, Packet* p)
         */
         {
             Profile exclude(hiPerfStats);
-            DetectionEngine de;
-            de.detect(p);
+            DetectionEngine::detect(p);
         }
 
         /*
