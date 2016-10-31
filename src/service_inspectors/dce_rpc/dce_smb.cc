@@ -3075,7 +3075,7 @@ void Dce2Smb::eval(Packet* p)
         p->packet_flags |= PKT_ALLOW_MULTIPLE_DETECT;
         dce2_detected = 0;
 
-        p->endianness = new DceEndianness();
+        p->endianness = new DceEndianness;
 
         DCE2_SmbProcess(dce2_smb_sess);
 
@@ -3086,9 +3086,6 @@ void Dce2Smb::eval(Packet* p)
 
         if (!DCE2_SsnAutodetected(&dce2_smb_sess->sd))
             DetectionEngine::disable_all(p);
-
-        delete p->endianness;
-        p->endianness = nullptr;
     }
 }
 

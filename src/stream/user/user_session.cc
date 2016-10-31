@@ -134,29 +134,33 @@ void UserTracker::init()
 
 void UserTracker::term()
 {
-    delete splitter;
-    splitter = nullptr;
+    if ( splitter )
+        delete splitter;
+
+    for ( auto* p : seg_list )
+        snort_free(p);
+
+    seg_list.clear();
 }
 
-void UserTracker::detect(const Packet* p, const StreamBuffer& sb, uint32_t flags)
+void UserTracker::detect(
+    const Packet* p, const StreamBuffer& sb, uint32_t flags, Packet* up)
 {
-    Packet up(false);
+    up->pkth = p->pkth;
+    up->ptrs = p->ptrs;
+    up->flow = p->flow;
+    up->data = sb.data;
+    up->dsize = sb.length;
 
-    up.pkth = p->pkth;
-    up.ptrs = p->ptrs;
-    up.flow = p->flow;
-    up.data = sb.data;
-    up.dsize = sb.length;
+    up->proto_bits = p->proto_bits;
+    up->pseudo_type = PSEUDO_PKT_USER;
 
-    up.proto_bits = p->proto_bits;
-    up.pseudo_type = PSEUDO_PKT_USER;
+    up->packet_flags = flags | PKT_REBUILT_STREAM | PKT_PSEUDO;
+    up->packet_flags |= (p->packet_flags & (PKT_FROM_CLIENT|PKT_FROM_SERVER));
+    up->packet_flags |= (p->packet_flags & (PKT_STREAM_EST|PKT_STREAM_UNEST_UNI));
 
-    up.packet_flags = flags | PKT_REBUILT_STREAM | PKT_PSEUDO;
-    up.packet_flags |= (p->packet_flags & (PKT_FROM_CLIENT|PKT_FROM_SERVER));
-    up.packet_flags |= (p->packet_flags & (PKT_STREAM_EST|PKT_STREAM_UNEST_UNI));
-
-    //printf("user detect[%d] %*s\n", up.dsize, up.dsize, (char*)up.data);
-    Snort::inspect(&up);
+    //printf("user detect[%d] %*.*s\n", up->dsize, up->dsize, up->dsize, (char*)up->data);
+    Snort::inspect(up);
 }
 
 int UserTracker::scan(Packet* p, uint32_t& flags)
@@ -164,6 +168,7 @@ int UserTracker::scan(Packet* p, uint32_t& flags)
     if ( seg_list.empty() )
         return -1;
 
+    DetectionEngine::onload(p->flow);
     std::list<UserSegment*>::iterator it;
 
     for ( it = seg_list.begin(); it != seg_list.end(); ++it)
@@ -175,7 +180,7 @@ int UserTracker::scan(Packet* p, uint32_t& flags)
 
         flags = p->packet_flags & (PKT_FROM_CLIENT|PKT_FROM_SERVER);
         unsigned len = us->get_unused_len();
-        //printf("user scan[%d] '%*s'\n", len, len, us->get_unused_data());
+        //printf("user scan[%d] '%*.*s'\n", len, len, len, us->get_unused_data());
 
         int32_t flush_amt = paf_check(
             splitter, &paf_state, p->flow, us->get_unused_data(), len,
@@ -203,6 +208,7 @@ void UserTracker::flush(Packet* p, unsigned flush_amt, uint32_t flags)
     StreamBuffer sb { nullptr, 0 };
     //printf("user flush[%d]\n", flush_amt);
     uint32_t rflags = flags & ~PKT_PDU_TAIL;
+    Packet* up = DetectionEngine::set_packet();
 
     while ( !seg_list.empty() and flush_amt )
     {
@@ -211,10 +217,13 @@ void UserTracker::flush(Packet* p, unsigned flush_amt, uint32_t flags)
         unsigned len = us->get_len();
         unsigned bytes_copied = 0;
 
-        if ( len == flush_amt )
+        if ( len >= flush_amt )
+        {
             rflags |= (flags & PKT_PDU_TAIL);
+            len = flush_amt;
+        }
 
-        //printf("user reassemble[%d]\n", len);
+        //printf("user reassemble[%d] of %d\n", flush_amt, total);
         sb = splitter->reassemble(
             p->flow, flush_amt, bytes_flushed, data, len, rflags, bytes_copied);
 
@@ -222,20 +231,16 @@ void UserTracker::flush(Packet* p, unsigned flush_amt, uint32_t flags)
         rflags &= ~PKT_PDU_HEAD;
 
         if ( sb.data )
-            detect(p, sb, flags);
+            detect(p, sb, flags, up);
 
-        if ( len == bytes_copied )
+        flush_amt -= bytes_copied;
+        us->shift(bytes_copied);
+        total -= bytes_copied;
+
+        if ( !us->get_len() )
         {
-            total -= len;
-            flush_amt -= len;
             seg_list.pop_front();
             UserSegment::term(us);
-        }
-        else
-        {
-            total -= bytes_copied;
-            us->shift(bytes_copied);
-            flush_amt = 0;
         }
     }
 }
@@ -282,10 +287,6 @@ void UserTracker::add_data(Packet* p)
     if ( avail < p->dsize )
     {
         UserSegment* us = UserSegment::init(p->data+avail, p->dsize-avail);
-
-        if ( !us )
-            return;
-
         seg_list.push_back(us);
     }
     total += p->dsize;
