@@ -296,9 +296,6 @@ void DropStats()
     const char* exclude = "daq detection snort";
     ModuleManager::dump_stats(snort_conf, exclude);
 
-    // ensure proper counting of log_limit
-    DetectionEngine::reset_counts();
-
     // FIXIT-L alert_pkts excludes rep hits
     if ( gpc.total_alert_pkts == gpc.alert_pkts )
         gpc.total_alert_pkts = 0;

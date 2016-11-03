@@ -53,31 +53,21 @@
 #include "config.h"
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
 #include "utils/util.h"
 
 /*
-**  NAME
-**    sfeventq_new::
-*/
-/**
 **  Initialize the event queue.  Provide the max number of nodes that this
 **  queue will support, the number of top nodes to log in the queue, and the
 **  size of the event structure that the user will fill in.
-**
-**  @return integer
-**
-**  @retval -1 failure
-**  @retval  0 success
 */
 SF_EVENTQ* sfeventq_new(int max_nodes, int log_nodes, int event_size)
 {
-    SF_EVENTQ* eq;
-
     if ((max_nodes <= 0) || (log_nodes <= 0) || (event_size <= 0))
         return NULL;
 
-    eq = (SF_EVENTQ*)snort_calloc(sizeof(SF_EVENTQ));
+    SF_EVENTQ* eq = (SF_EVENTQ*)snort_calloc(sizeof(SF_EVENTQ));
 
     /* Initialize the memory for the nodes that we are going to use. */
     eq->node_mem = (SF_EVENTQ_NODE*)snort_calloc(max_nodes, sizeof(SF_EVENTQ_NODE));
@@ -88,16 +78,14 @@ SF_EVENTQ* sfeventq_new(int max_nodes, int log_nodes, int event_size)
     eq->event_size = event_size;
     eq->cur_nodes = 0;
     eq->cur_events = 0;
+    eq->fails = 0;
+
     eq->reserve_event = (char*)(&eq->event_mem[max_nodes * eq->event_size]);
 
     return eq;
 }
 
 /*
-**  NAME
-**    sfeventq_event_alloc::
-*/
-/**
 **  Allocate the memory for an event to add to the event queue.  This
 **  function is meant to be called first, the event structure filled in,
 **  and then added to the queue.  While you can allocate several times before
@@ -132,33 +120,20 @@ void* sfeventq_event_alloc(SF_EVENTQ* eq)
 }
 
 /*
-**  NAME
-**    sfeventq_reset::
-*/
-/**
 **  Resets the event queue.  We also set the reserve event back
 **  to the last event in the queue.
-**
-**  @return void
 */
-void sfeventq_reset(SF_EVENTQ* eq)
+unsigned sfeventq_reset(SF_EVENTQ* eq)
 {
+    unsigned fails = eq->fails;
+    eq->fails = 0;
     eq->head = NULL;
     eq->cur_nodes = 0;
     eq->cur_events = 0;
     eq->reserve_event = (char*)(&eq->event_mem[eq->max_nodes * eq->event_size]);
+    return fails;
 }
 
-/*
-**  NAME
-**    sfeventq_free::
-*/
-/**
-**  Cleanup the event queue.
-**
-**  @return none
-**
-*/
 void sfeventq_free(SF_EVENTQ* eq)
 {
     if (eq == NULL)
@@ -181,10 +156,6 @@ void sfeventq_free(SF_EVENTQ* eq)
 }
 
 /*
-**  NAME
-**    get_eventq_node::
-*/
-/**
 **  This function returns a ptr to the node to use.  We allocate the last
 **  event node if we have exhausted the event queue.  Before we allocate
 **  the last node, we determine if the incoming event has a higher
@@ -205,17 +176,11 @@ static SF_EVENTQ_NODE* get_eventq_node(SF_EVENTQ* eq, void*)
     if (eq->cur_nodes >= eq->max_nodes)
         return NULL;
 
-    /*
-    **  We grab the next node from the node memory.
-    */
+    //  We grab the next node from the node memory.
     return &eq->node_mem[eq->cur_nodes++];
 }
 
 /*
-**  NAME
-**    sfeventq_add:
-*/
-/**
 **  Add this event to the queue using the supplied ordering
 **  function.  If the queue is exhausted, then we compare the
 **  event to be added with the last event, and decide whether
@@ -228,10 +193,7 @@ static SF_EVENTQ_NODE* get_eventq_node(SF_EVENTQ* eq, void*)
 */
 int sfeventq_add(SF_EVENTQ* eq, void* event)
 {
-    SF_EVENTQ_NODE* node;
-
-    if (!event)
-        return -1;
+    assert(event);
 
     /*
     **  If get_eventq_node() returns NULL, this means that
@@ -239,26 +201,26 @@ int sfeventq_add(SF_EVENTQ* eq, void* event)
     **  is lower in priority then the last ranked event.
     **  So we just drop it.
     */
-    node = get_eventq_node(eq, event);
-    if (!node)
+    SF_EVENTQ_NODE* node = get_eventq_node(eq, event);
+
+    if ( !node )
+    {
+        ++eq->fails;
         return -1;
+    }
 
     node->event = event;
     node->next  = NULL;
     node->prev  = NULL;
 
-    /*
-    **  This is the first node
-    */
     if (eq->cur_nodes == 1)
     {
+        //  This is the first node
         eq->head = eq->last = node;
         return 0;
     }
 
-    /*
-    **  This means we are the last node.
-    */
+    //  This means we are the last node.
     node->prev = eq->last;
 
     eq->last->next = node;
@@ -268,10 +230,6 @@ int sfeventq_add(SF_EVENTQ* eq, void* event)
 }
 
 /*
-**  NAME
-**    sfeventq_action::
-*/
-/**
 **  Call the supplied user action function on the highest priority
 **  events.
 **

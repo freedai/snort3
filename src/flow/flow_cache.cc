@@ -24,7 +24,6 @@
 #include "config.h"
 #endif
 
-#include "detection/detection_engine.h"
 #include "flow/ha.h"
 #include "hash/zhash.h"
 #include "helpers/flag_context.h"
@@ -147,7 +146,6 @@ Flow* FlowCache::get(const FlowKey* key)
 
 int FlowCache::release(Flow* flow, PruneReason reason, bool do_cleanup)
 {
-    DetectionEngine::onload(flow);
     flow->reset(do_cleanup);
     prune_stats.update(reason);
     return remove(flow);

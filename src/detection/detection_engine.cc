@@ -46,7 +46,6 @@
 
 Trace TRACE_NAME(detection);
 
-static THREAD_LOCAL unsigned s_events = 0;
 static THREAD_LOCAL Ring<unsigned>* offload_ids = nullptr;
 
 void DetectionEngine::thread_init()
@@ -382,7 +381,6 @@ int DetectionEngine::queue_event(const OptTreeNode* otn)
     if ( sfeventq_add(pq, en) )
         return -1;
 
-    s_events++;
     return 0;
 }
 
@@ -406,7 +404,6 @@ int DetectionEngine::queue_event(uint32_t gid, uint32_t sid, RuleType type)
     if ( sfeventq_add(pq, en) )
         return -1;
 
-    s_events++;
     return 0;
 }
 
@@ -424,9 +421,6 @@ static int log_events(void* event, void* user)
         if ( !en->rtn )
             return 0;  // not enabled
     }
-
-    if ( s_events > 0 )
-        s_events--;
 
     fpLogEvent(en->rtn, en->otn, (Packet*)user);
     sfthreshold_reset();
@@ -448,16 +442,9 @@ int DetectionEngine::log_events(Packet* p)
     return 0;
 }
 
-void DetectionEngine::reset_counts()
-{
-    pc.log_limit += s_events;
-    s_events = 0;
-}
-
 void DetectionEngine::reset(Packet* p)
 {
     SF_EVENTQ* pq = p->context->equeue;
-    sfeventq_reset(pq);
-    reset_counts();
+    pc.log_limit += sfeventq_reset(pq);
 }
 
