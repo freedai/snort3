@@ -151,7 +151,7 @@ protected:
     int flush_to_seq(uint32_t bytes, Packet* p, uint32_t pkt_flags);
     uint32_t get_q_footprint();
     uint32_t get_q_sequenced();
-    void final_flush(Packet* p, PegCount& peg, uint32_t dir);
+    void final_flush(Packet* p, uint32_t dir);
     uint32_t get_reverse_packet_dir(const Packet* p);
     uint32_t get_forward_packet_dir(const Packet* p);
     int32_t flush_pdu_ips(uint32_t* flags);

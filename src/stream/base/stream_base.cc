@@ -27,6 +27,7 @@
 #include "main/snort_debug.h"
 #include "managers/inspector_manager.h"
 #include "profiler/profiler.h"
+#include "utils/stats.h"
 
 #include "stream/tcp/tcp_session.h"
 #include "stream_module.h"
